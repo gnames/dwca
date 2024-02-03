@@ -1,13 +1,19 @@
 package dwca
 
-type factory struct {
-	url string
+import (
+	"github.com/gnames/dwca/config"
+	"github.com/gnames/dwca/ent/dcfile"
+)
+
+type arch struct {
+	cfg config.Config
+	df  dcfile.DCFile
 }
 
-func New() Factory {
-	return &factory{}
+func New(cfg config.Config, df dcfile.DCFile) Archive {
+	return &arch{cfg: cfg, df: df}
 }
 
-func (f *factory) Fetch(url string) error {
-	return nil
+func (d *arch) Extract() error {
+	return d.df.Extract()
 }
