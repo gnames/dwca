@@ -1,7 +1,7 @@
 package dcfileio
 
 import (
-	"github.com/gnames/dwca/ent/dcfile"
+	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/gnsys"
 )
 
@@ -32,6 +32,6 @@ func (d *dcfileio) rootDir() error {
 	case gnsys.DirNotEmpty:
 		return gnsys.CleanDir(d.cfg.Path)
 	default:
-		return dcfile.ErrDir{}
+		return &dcfile.ErrDir{}
 	}
 }

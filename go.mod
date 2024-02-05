@@ -3,6 +3,7 @@ module github.com/gnames/dwca
 go 1.21.6
 
 require (
+	github.com/gnames/ecoml v0.0.1
 	github.com/gnames/gnsys v0.2.4
 	github.com/stretchr/testify v1.8.4
 	github.com/ulikunitz/xz v0.5.11

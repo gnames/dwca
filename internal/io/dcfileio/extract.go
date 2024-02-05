@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gnames/dwca/ent/dcfile"
+	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/gnsys"
 	"github.com/ulikunitz/xz"
 )
@@ -19,9 +19,9 @@ import (
 // directory.
 func (d *dcfileio) extractTar() error {
 	// Open the tar archive for reading.
-	file, err := os.Open(d.fpath)
+	file, err := os.Open(d.filePath)
 	if err != nil {
-		return dcfile.ErrExtract{Path: d.fpath, Err: err}
+		return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 	}
 	defer file.Close()
 
@@ -37,7 +37,7 @@ func (d *dcfileio) untar(tarReader *tar.Reader) error {
 			break
 		}
 		if err != nil {
-			return dcfile.ErrExtract{Path: d.fpath, Err: err}
+			return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 		}
 
 		// Get the individual filepath from the header.
@@ -48,23 +48,23 @@ func (d *dcfileio) untar(tarReader *tar.Reader) error {
 			// Handle directory.
 			err = os.MkdirAll(filepath, os.FileMode(header.Mode))
 			if err != nil {
-				return dcfile.ErrExtract{Path: d.fpath, Err: err}
+				return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 			}
 		case tar.TypeReg:
 			// Handle regular file.
 			writer, err = os.Create(filepath)
 			if err != nil {
-				return dcfile.ErrExtract{Path: d.fpath, Err: err}
+				return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 			}
 			io.Copy(writer, tarReader)
 			writer.Close()
 		default:
-			return dcfile.ErrExtract{Path: d.fpath, Err: err}
+			return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 		}
 	}
 	state := gnsys.GetDirState(d.cfg.ExtractPath)
 	if state == gnsys.DirEmpty {
-		return dcfile.ErrExtract{
+		return &dcfile.ErrExtract{
 			Path: d.cfg.ExtractPath,
 			Err:  errors.New("bad tar file"),
 		}
@@ -74,16 +74,16 @@ func (d *dcfileio) untar(tarReader *tar.Reader) error {
 
 func (d *dcfileio) extractTarGz() error {
 	// Open the .tar.gz archive for reading.
-	file, err := os.Open(d.fpath)
+	file, err := os.Open(d.filePath)
 	if err != nil {
-		return dcfile.ErrExtract{Path: d.fpath, Err: err}
+		return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 	}
 	defer file.Close()
 
 	// Create a new gzip reader.
 	gzReader, err := gzip.NewReader(file)
 	if err != nil {
-		return dcfile.ErrExtract{Path: d.fpath, Err: err}
+		return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 	}
 	defer gzReader.Close()
 
@@ -94,9 +94,9 @@ func (d *dcfileio) extractTarGz() error {
 
 func (d *dcfileio) extractTarBz2() error {
 	// Open the .tar.gz archive for reading.
-	file, err := os.Open(d.fpath)
+	file, err := os.Open(d.filePath)
 	if err != nil {
-		return dcfile.ErrExtract{Path: d.fpath, Err: err}
+		return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 	}
 	defer file.Close()
 
@@ -110,15 +110,15 @@ func (d *dcfileio) extractTarBz2() error {
 
 func (d *dcfileio) extractTarXz() error {
 	// Open the .tar.gz archive for reading.
-	file, err := os.Open(d.fpath)
+	file, err := os.Open(d.filePath)
 	if err != nil {
-		return dcfile.ErrExtract{Path: d.fpath, Err: err}
+		return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 	}
 	defer file.Close()
 
 	xzReader, err := xz.NewReader(file)
 	if err != nil {
-		return dcfile.ErrExtract{Path: d.fpath, Err: err}
+		return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 	}
 
 	// Create a new tar reader from the gzip reader.
@@ -128,9 +128,9 @@ func (d *dcfileio) extractTarXz() error {
 
 func (d *dcfileio) extractZip() error {
 	// Open the zip file for reading.
-	r, err := zip.OpenReader(d.fpath)
+	r, err := zip.OpenReader(d.filePath)
 	if err != nil {
-		return dcfile.ErrExtract{Path: d.fpath, Err: err}
+		return &dcfile.ErrExtract{Path: d.filePath, Err: err}
 	}
 	defer r.Close()
 
@@ -138,7 +138,7 @@ func (d *dcfileio) extractZip() error {
 		// Construct the full path for the file/directory and ensure its directory exists.
 		fpath := filepath.Join(d.cfg.ExtractPath, f.Name)
 		if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-			return dcfile.ErrExtract{Path: fpath, Err: err}
+			return &dcfile.ErrExtract{Path: fpath, Err: err}
 		}
 
 		// If it's a directory, move on to the next entry.
@@ -150,7 +150,7 @@ func (d *dcfileio) extractZip() error {
 		// Open the file within the zip.
 		rc, err := f.Open()
 		if err != nil {
-			return dcfile.ErrExtract{Path: fpath, Err: err}
+			return &dcfile.ErrExtract{Path: fpath, Err: err}
 		}
 		defer rc.Close()
 
@@ -161,14 +161,14 @@ func (d *dcfileio) extractZip() error {
 			f.Mode(),
 		)
 		if err != nil {
-			return dcfile.ErrExtract{Path: fpath, Err: err}
+			return &dcfile.ErrExtract{Path: fpath, Err: err}
 		}
 		defer outFile.Close()
 
 		// Copy the contents of the file from the zip to the new file.
 		_, err = io.Copy(outFile, rc)
 		if err != nil {
-			return dcfile.ErrExtract{Path: fpath, Err: err}
+			return &dcfile.ErrExtract{Path: fpath, Err: err}
 		}
 	}
 

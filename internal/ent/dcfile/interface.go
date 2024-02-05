@@ -10,6 +10,10 @@ type DCFile interface {
 	//  Extract extracts the content of the DwCA file to a temporary directory.
 	Extract() error
 
+	// ArchiveDir returns the path to the temporary directory
+	// where DwCA data is located.
+	ArchiveDir() (string, error)
+
 	// Close removes the temporary directory with the extracted content.
 	Close() error
 }
