@@ -1,7 +1,5 @@
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/gnames/ecoml v0.0.1 h1:ndWdgmQwsFU3M4dAOEPXIOqJupwY9N6gGE0u2qGOAso=
-github.com/gnames/ecoml v0.0.1/go.mod h1:oHJT1m7bm2Lc734qEvoTuoa8KClAKnYdpkUZmTeap0U=
 github.com/gnames/gnsys v0.2.4 h1:kxqeojKFw/JL3g7cwsnXB+8N+L2DUxKpop4T8Rq0We4=
 github.com/gnames/gnsys v0.2.4/go.mod h1:NTE1nKitxH/eJf8f386zqayaUHC6DnqmVODb7XXCsBk=
 github.com/matryer/is v1.4.1 h1:55ehd8zaGABKLXQUe2awZ99BD/PTc2ls+KV/dXphgEQ=

@@ -21,7 +21,6 @@ func Factory(fpath string, opts ...config.Option) (Archive,
 		return nil, err
 	}
 
-	res := &arch{cfg: cfg, df: dcf}
-
+	res := &arch{cfg: cfg, dcFile: dcf}
 	return res, nil
 }

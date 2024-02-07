@@ -57,3 +57,21 @@ type ErrExtract struct {
 func (e *ErrExtract) Error() string {
 	return fmt.Sprintf("extracting '%s' failed: %v", e.Path, e.Err)
 }
+
+// ErrCoreRead is returned when reading the core file fails.
+type ErrCoreRead struct {
+	Err error
+}
+
+func (e *ErrCoreRead) Error() string {
+	return fmt.Sprintf("reading core file failed: %v", e.Err)
+}
+
+type ErrExtensionRead struct {
+	Err error
+}
+
+// ErrExtensionRead is returned when reading the extension file fails.
+func (e *ErrExtensionRead) Error() string {
+	return fmt.Sprintf("reading extension file failed: %v", e.Err)
+}

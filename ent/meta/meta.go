@@ -37,19 +37,23 @@ type Extension struct {
 	CoreID CoreID `xml:"coreid"`
 }
 
+// Files holds the location of the files.
 type Files struct {
 	Location string `xml:"location"`
 }
 
+// ID holds the fields for the Core ID.
 type ID struct {
 	Index string `xml:"index,attr"`
 	Term  string `xml:"term,attr"`
 }
 
+// CoreID holds the fields for the CoreID data.
 type CoreID struct {
 	Index string `xml:"index,attr"`
 }
 
+// Field holds the fields of the data.
 type Field struct {
 	Index string `xml:"index,attr"`
 	Term  string `xml:"term,attr"`

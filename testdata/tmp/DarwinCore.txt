@@ -1,4 +1,4 @@
-TaxonID	dc:source	ScientificName	HigherTaxonID	TaxonRank	TaxonomicStatus
+TaxonID	dc:source	ScientificName	HigherTaxonID	TaxonRank	TaxonomicStatus	uuid
 leptogastrinae:tid:127	http://leptogastrinae.lifedesks.org/pages/127	Leptogastridae	leptogastrinae:tid:42		synonym	1	e017ed01-407d-4d09-82c5-8b3d9fa76e35
 leptogastrinae:tid:42	http://leptogastrinae.lifedesks.org/pages/42	Leptogastrinae	/N	subfamily		2	97498f29-2501-440d-9452-f3817da0d6c2	
 leptogastrinae:tid:2045	http://leptogastrinae.lifedesks.org/pages/2045	Leptogastrini	leptogastrinae:tid:42	tribe		3	0a8e2c72-add7-455a-8909-a13b10c06b20	
