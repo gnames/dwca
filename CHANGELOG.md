@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Add [#4]: convenience meta object.
+
 ## [v0.0.1] - 2024-02-12 Mon
 
 Add [#3]: read core and extension files.
