@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Add [#10]: find how sci-name, hierarchy, synonyms are expressed in a DwCA file.
 Add [#4]: convenience meta object.
 
 ## [v0.0.1] - 2024-02-12 Mon

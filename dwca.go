@@ -1,13 +1,17 @@
 package dwca
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gnames/dwca/config"
 	"github.com/gnames/dwca/ent/eml"
 	"github.com/gnames/dwca/ent/meta"
 	"github.com/gnames/dwca/internal/ent/dcfile"
+	"github.com/gnames/dwca/internal/ent/diagn"
+	"github.com/gnames/gnparser"
 )
 
 type arch struct {
@@ -15,10 +19,20 @@ type arch struct {
 	dcFile   dcfile.DCFile
 	metaData *meta.Meta
 	emlData  *eml.EML
+	diagn.Diagnostics
+	gnpPool chan gnparser.GNparser
 }
 
 func New(cfg config.Config, df dcfile.DCFile) Archive {
-	return &arch{cfg: cfg, dcFile: df}
+	res := &arch{cfg: cfg, dcFile: df}
+	poolSize := 5
+	gnpPool := make(chan gnparser.GNparser, poolSize)
+	for i := 0; i < poolSize; i++ {
+		cfgGNP := gnparser.NewConfig()
+		gnpPool <- gnparser.New(cfgGNP)
+	}
+	res.gnpPool = gnpPool
+	return res
 }
 
 // Config returns the configuration object of the archive.
@@ -60,10 +74,10 @@ func (a *arch) EML() *eml.EML {
 	return a.emlData
 }
 
-// CoreData takes an offset and a limit and returns a slice of slices of
+// CoreSlice takes an offset and a limit and returns a slice of slices of
 // strings, each slice representing a row of the core file. If limit and
 // offset are provided, it returns the corresponding subset of the data.
-func (a *arch) CoreData(offset, limit int) ([][]string, error) {
+func (a *arch) CoreSlice(offset, limit int) ([][]string, error) {
 	return a.dcFile.CoreData(a.metaData, offset, limit)
 }
 
@@ -74,12 +88,12 @@ func (a *arch) CoreStream(chCore chan<- []string) error {
 	return a.dcFile.CoreStream(a.metaData, chCore)
 }
 
-// ExtensionData takes an index, offset and limit and returns a slice of
+// ExtensionSlice takes an index, offset and limit and returns a slice of
 // slices of strings, each slice representing a row of the extension file.
 // Index corresponds the index of the extension in the extension list.
 // If limit and offset are provided, it returns the corresponding subset
 // of the data.
-func (a *arch) ExtensionData(index, offset, limit int) ([][]string, error) {
+func (a *arch) ExtensionSlice(index, offset, limit int) ([][]string, error) {
 	return a.dcFile.ExtensionData(index, a.metaData, offset, limit)
 }
 
@@ -121,4 +135,46 @@ func (a *arch) getEML(path string) error {
 	}
 
 	return nil
+}
+
+func (a *arch) Diagnose() (*diagn.Diagnostics, error) {
+	cs, exts, err := a.coreSample()
+	if err != nil {
+		return nil, err
+	}
+	if cs == nil {
+		return nil, errors.New("no data in the core file")
+	}
+
+	prs := <-a.gnpPool
+	defer func() { a.gnpPool <- prs }()
+
+	return diagn.New(prs, cs, exts), nil
+}
+
+func (a *arch) coreSample() (
+	[]map[string]string,
+	map[string]string,
+	error,
+) {
+	dt, err := a.CoreSlice(0, 1000)
+	if err != nil {
+		return nil, nil, err
+	}
+	m := a.metaData.Simplify()
+	coreRows := make([]map[string]string, len(dt))
+	exts := make(map[string]string)
+	for k, v := range m.ExtensionsData {
+		exts[k] = strings.ToLower(v.Location)
+	}
+	for i, row := range dt {
+		coreRows[i] = make(map[string]string)
+		for j, val := range row {
+			if m.CoreData.FieldsIdx[j].Term == "" {
+				continue
+			}
+			coreRows[i][m.CoreData.FieldsIdx[j].Term] = val
+		}
+	}
+	return coreRows, exts, nil
 }

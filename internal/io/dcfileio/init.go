@@ -1,8 +1,6 @@
 package dcfileio
 
 import (
-	"fmt"
-
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/gnsys"
 )
@@ -28,16 +26,12 @@ func (d *dcfileio) touchDirs() error {
 func (d *dcfileio) rootDir() error {
 	switch gnsys.GetDirState(d.cfg.Path) {
 	case gnsys.DirAbsent:
-		fmt.Println("dir absent")
 		return gnsys.MakeDir(d.cfg.Path)
 	case gnsys.DirEmpty:
-		fmt.Println("dir empty")
 		return nil
 	case gnsys.DirNotEmpty:
-		fmt.Println("clean dir")
 		return gnsys.CleanDir(d.cfg.Path)
 	default:
-		fmt.Println("clean dir")
 		return &dcfile.ErrDir{}
 	}
 }

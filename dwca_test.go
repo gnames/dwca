@@ -6,6 +6,7 @@ import (
 
 	"github.com/gnames/dwca"
 	"github.com/gnames/dwca/internal/ent/dcfile"
+	"github.com/gnames/dwca/internal/ent/diagn"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,7 +51,7 @@ func TestCoreData(t *testing.T) {
 		meta := arc.Meta()
 		assert.NotNil(meta)
 
-		data, err := arc.CoreData(v.offset, v.limit)
+		data, err := arc.CoreSlice(v.offset, v.limit)
 		assert.Nil(err)
 		assert.Equal(v.len, len(data))
 		assert.Equal(v.res00, data[0][0])
@@ -120,7 +121,7 @@ func TestExtensionData(t *testing.T) {
 		meta := arc.Meta()
 		assert.NotNil(meta)
 
-		data, err := arc.ExtensionData(0, v.offset, v.limit)
+		data, err := arc.ExtensionSlice(0, v.offset, v.limit)
 		assert.Nil(err)
 		assert.Equal(v.len, len(data))
 		if len(data) > 0 {
@@ -162,5 +163,102 @@ func TestExtensionStream(t *testing.T) {
 			count++
 		}
 		assert.Equal(v.len, count)
+	}
+}
+
+func TestSciNameDiagnose(t *testing.T) {
+	assert := assert.New(t)
+
+	tests := []struct {
+		msg    string
+		file   string
+		snType diagn.SciNameType
+	}{
+		{"can", "canonical.tar.gz", diagn.SciNameCanonical},
+		{"full+auth", "full-auth-dup.tar.gz", diagn.SciNameFull},
+		{"full", "unknown.tar.gz", diagn.SciNameUnknown},
+		{"full", "composite.tar.gz", diagn.SciNameComposite},
+	}
+
+	for _, v := range tests {
+		path := filepath.Join("testdata", "diagn", "scinames", v.file)
+		arc, err := dwca.Factory(path)
+		assert.Nil(err)
+		assert.Implements((*dwca.Archive)(nil), arc)
+
+		err = arc.Load()
+		assert.Nil(err)
+
+		meta := arc.Meta()
+		assert.NotNil(meta)
+
+		diag, err := arc.Diagnose()
+		assert.Nil(err)
+		assert.Equal(v.snType.String(), diag.SciNameType.String())
+	}
+}
+
+func TestSynDiagnose(t *testing.T) {
+	assert := assert.New(t)
+
+	tests := []struct {
+		msg    string
+		file   string
+		snType diagn.SynonymType
+	}{
+		{"ext", "in_extension.tar.gz", diagn.SynExtension},
+		{"accepted", "in_core_accepted.tar.gz", diagn.SynAcceptedID},
+		{"hierarchy", "hierarchy_deprecated.tar.gz", diagn.SynHierarchy},
+		{"hierarchy", "hierarchy.tar.gz", diagn.SynHierarchy},
+		{"unknown", "unknown.tar.gz", diagn.SynUnknown},
+	}
+
+	for _, v := range tests {
+		path := filepath.Join("testdata", "diagn", "synonyms", v.file)
+		arc, err := dwca.Factory(path)
+		assert.Nil(err)
+		assert.Implements((*dwca.Archive)(nil), arc)
+
+		err = arc.Load()
+		assert.Nil(err)
+
+		meta := arc.Meta()
+		assert.NotNil(meta)
+
+		diag, err := arc.Diagnose()
+		assert.Nil(err)
+		assert.Equal(v.snType.String(), diag.SynonymType.String())
+	}
+}
+
+func TestHierDiagnose(t *testing.T) {
+	assert := assert.New(t)
+
+	tests := []struct {
+		msg   string
+		file  string
+		hType diagn.HierType
+	}{
+		{"tree", "tree.tar.gz", diagn.HierTree},
+		{"tree", "tree_depr.tar.gz", diagn.HierTree},
+		{"flat", "flat.tar.gz", diagn.HierFlat},
+		{"unknown", "unknown.tar.gz", diagn.HierUnknown},
+	}
+
+	for _, v := range tests {
+		path := filepath.Join("testdata", "diagn", "hierarchy", v.file)
+		arc, err := dwca.Factory(path)
+		assert.Nil(err)
+		assert.Implements((*dwca.Archive)(nil), arc)
+
+		err = arc.Load()
+		assert.Nil(err)
+
+		meta := arc.Meta()
+		assert.NotNil(meta)
+
+		diag, err := arc.Diagnose()
+		assert.Nil(err)
+		assert.Equal(v.hType.String(), diag.HierType.String())
 	}
 }

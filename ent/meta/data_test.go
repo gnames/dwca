@@ -20,8 +20,10 @@ func TestToData(t *testing.T) {
 
 	m, err = meta.New(f)
 	assert.Nil(err)
-	data := m.ToData()
+	data := m.Simplify()
 	assert.NotNil(data)
 	assert.Equal(0, data.Index)
-	assert.Equal("", data.TermFull)
+	assert.Equal("http://rs.tdwg.org/dwc/terms/Taxon", data.TermFull)
+	assert.Equal("taxon", data.Term)
+	assert.Equal(3, len(data.ExtensionsData))
 }
