@@ -75,3 +75,20 @@ type ErrExtensionRead struct {
 func (e *ErrExtensionRead) Error() string {
 	return fmt.Sprintf("reading extension file failed: %v", e.Err)
 }
+
+// ErrContext is returned when the context is canceled.
+type ErrContext struct {
+	Err error
+}
+
+func (e *ErrContext) Error() string {
+	return fmt.Sprintf("context canceled: %v", e.Err)
+}
+
+type ErrSaveCSV struct {
+	Err error
+}
+
+func (e *ErrSaveCSV) Error() string {
+	return fmt.Sprintf("saving csv file failed: %v", e.Err)
+}

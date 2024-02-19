@@ -1,6 +1,10 @@
 package dcfileio
 
 import (
+	"archive/tar"
+	"archive/zip"
+	"compress/gzip"
+	"context"
 	"encoding/csv"
 	"errors"
 	"io"
@@ -39,7 +43,7 @@ func New(cfg config.Config, path string) (dcfile.DCFile, error) {
 }
 
 func (d *dcfileio) Init() error {
-	err := d.touchDirs()
+	err := d.resetDirs()
 	if err != nil {
 		return err
 	}
@@ -151,7 +155,7 @@ func (d *dcfileio) CoreData(
 	return res, nil
 }
 
-func (d *dcfileio) CoreStream(meta *meta.Meta, coreChan chan<- []string) error {
+func (d *dcfileio) CoreStream(ctx context.Context, meta *meta.Meta, coreChan chan<- []string) error {
 	attr := fileAttrs{
 		path:         meta.Core.Files.Location,
 		colSep:       meta.Core.FieldsTerminatedBy,
@@ -163,21 +167,28 @@ func (d *dcfileio) CoreStream(meta *meta.Meta, coreChan chan<- []string) error {
 		return &dcfile.ErrCoreRead{Err: err}
 	}
 	defer f.Close()
+
 	// ignore headers if they are given
 	if attr.ignoreHeader == "1" {
 		r.Read()
 	}
 
+loop:
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
-			break
+			break loop
 		}
-
 		if err != nil {
 			return &dcfile.ErrCoreRead{Err: err}
 		}
-		coreChan <- row
+
+		select {
+		case <-ctx.Done():
+			return &dcfile.ErrContext{Err: ctx.Err()}
+		default:
+			coreChan <- row
+		}
 	}
 
 	close(coreChan)
@@ -240,7 +251,10 @@ func (d *dcfileio) ExtensionData(
 }
 
 func (d *dcfileio) ExtensionStream(
-	index int, meta *meta.Meta, extChan chan<- []string,
+	ctx context.Context,
+	index int,
+	meta *meta.Meta,
+	extChan chan<- []string,
 ) error {
 	if meta == nil {
 		return &dcfile.ErrExtensionRead{Err: errors.New("*meta.Meta is nil")}
@@ -273,12 +287,167 @@ func (d *dcfileio) ExtensionStream(
 		}
 
 		if err != nil {
-			return &dcfile.ErrCoreRead{Err: err}
+			return &dcfile.ErrExtensionRead{Err: err}
 		}
-		extChan <- row
+
+		select {
+		case <-ctx.Done():
+			return &dcfile.ErrContext{Err: ctx.Err()}
+		default:
+			extChan <- row
+		}
 	}
 
 	close(extChan)
+	return nil
+}
+
+func (d *dcfileio) ExportCSVStream(
+	ctx context.Context,
+	file string,
+	fields []string,
+	outChan <-chan []string,
+) error {
+	path := filepath.Join(d.cfg.OutputPath, file)
+	f, err := os.Create(path)
+	if err != nil {
+		return &dcfile.ErrSaveCSV{Err: err}
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	w.Comma = ','
+
+	err = w.Write(fields)
+	if err != nil {
+		return err
+	}
+
+	for row := range outChan {
+		select {
+		case <-ctx.Done():
+			return &dcfile.ErrContext{Err: ctx.Err()}
+		default:
+			err = w.Write(row)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	w.Flush()
+	return nil
+}
+
+func (d *dcfileio) SaveToFile(fileName string, bs []byte) error {
+	path := filepath.Join(d.cfg.OutputPath, fileName)
+	return os.WriteFile(path, bs, 0644)
+}
+
+func (d *dcfileio) ZipOutput(filePath string) error {
+	w, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+	filepath.WalkDir(d.cfg.OutputPath,
+		func(path string, e os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if e.IsDir() {
+				return nil // Skip directories
+			}
+
+			relPath, err := filepath.Rel(d.cfg.OutputPath, path)
+			if err != nil {
+				return err
+			}
+
+			fileInfo, err := e.Info()
+			if err != nil {
+				return err
+			}
+
+			header, err := zip.FileInfoHeader(fileInfo)
+			if err != nil {
+				return err
+			}
+
+			header.Name = relPath // Store relative path within the zip
+			header.Method = zip.Deflate
+
+			writer, err := zipWriter.CreateHeader(header)
+			if err != nil {
+				return err
+			}
+
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(writer, file)
+			return err
+		})
+
+	return nil
+}
+
+func (dd *dcfileio) TarGzOutput(tarGzFilename string) error {
+	w, err := os.Create(tarGzFilename)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+
+	gzWriter := gzip.NewWriter(w)
+	defer gzWriter.Close()
+
+	tarWriter := tar.NewWriter(gzWriter)
+	defer tarWriter.Close()
+
+	filepath.WalkDir(dd.cfg.OutputPath,
+		func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if d.IsDir() {
+				return nil
+			}
+
+			relPath, err := filepath.Rel(dd.cfg.OutputPath, path)
+			if err != nil {
+				return err
+			}
+
+			fileInfo, err := d.Info()
+			if err != nil {
+				return err
+			}
+
+			header, err := tar.FileInfoHeader(fileInfo, relPath)
+			if err != nil {
+				return err
+			}
+
+			err = tarWriter.WriteHeader(header)
+			if err != nil {
+				return err
+			}
+
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(tarWriter, file)
+			return err
+		})
 	return nil
 }
 
@@ -287,7 +456,11 @@ func (d *dcfileio) Close() error {
 	if err != nil {
 		return err
 	}
-	return os.RemoveAll(d.cfg.DownloadPath)
+	err = os.RemoveAll(d.cfg.DownloadPath)
+	if err != nil {
+		return err
+	}
+	return os.RemoveAll(d.cfg.OutputPath)
 }
 
 type fileAttrs struct {
@@ -317,13 +490,15 @@ func (d *dcfileio) openCSV(attr fileAttrs) (*csv.Reader, *os.File, error) {
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r := csv.NewReader(f)
 	r.Comma = colSep
+	// allow variable number of fields
+	r.FieldsPerRecord = -1
+
 	if r.Comma == '\t' {
 		// lax quotes for tab-separated files
 		r.LazyQuotes = true
-		// allow variable number of fields
-		r.FieldsPerRecord = -1
 	}
 
 	return r, f, nil

@@ -9,8 +9,7 @@ import (
 // configuration, and a path to the DwCA file. The path is used to initialize
 // the DwCA object, and the options are used to configure the object.
 // This function is the only place where concrete IO objects are allowed.
-func Factory(fpath string, opts ...config.Option) (Archive,
-	error) {
+func Factory(fpath string, opts ...config.Option) (Archive, error) {
 	cfg := config.New(opts...)
 	dcf, err := dcfileio.New(cfg, fpath)
 	if err != nil {

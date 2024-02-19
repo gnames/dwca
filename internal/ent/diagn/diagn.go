@@ -106,6 +106,13 @@ func sciNameType(p gnparser.GNparser, d []map[string]string) SciNameType {
 		return SciNameUnknown
 	}
 
+	row0 := d[0]
+	if _, ok := row0["scientificname"]; ok {
+		if _, ok := row0["scientificnameauthorship"]; !ok {
+			return SciNameFull
+		}
+	}
+
 	var canonicalNum, fullNum, compositeNum int
 	for _, v := range d {
 		if v["scientificname"] == "" && v["specificepithet"] != "" {

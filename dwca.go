@@ -1,7 +1,9 @@
 package dwca
 
 import (
+	"context"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,24 +16,56 @@ import (
 	"github.com/gnames/gnparser"
 )
 
+// arch implements Archive interface.
 type arch struct {
-	cfg      config.Config
-	dcFile   dcfile.DCFile
-	metaData *meta.Meta
-	emlData  *eml.EML
-	diagn.Diagnostics
+	// cfg is the configuration object of the archive.
+	cfg config.Config
+
+	// dcFile is the object that handles the DwCA archive filesystem operations.
+	dcFile dcfile.DCFile
+
+	// meta is the object that holds the metadata of the DwCA archive.
+	meta *meta.Meta
+
+	// outputMeta is the object that holds the metadata of the DwCA archive and
+	// is modified for output DwCA file.
+	outputMeta *meta.Meta
+
+	// metaSimple is the simplified version of the metadata. It is useful to
+	// access metadata fields by their names or indices.
+	metaSimple *meta.MetaSimple
+
+	// emlData is the object that holds the EML data of the DwCA archive.
+	emlData *eml.EML
+
+	// dgn is the object that holds the diagnostics that detect semantically
+	// fuzzy fields and how are they used in the DwCA file.
+	dgn *diagn.Diagnostics
+
+	// gnpPool is a pool of GNparser objects to be used in parallel processing.
 	gnpPool chan gnparser.GNparser
+
+	// taxon contains information about DarwinCore fields that are relevant
+	// for taxon information.
+	taxon *taxon
+
+	// hierarchy is used when core contains parent-child relationship to
+	// represent a hierarchy.
+	hierarchy map[string]*hNode
 }
 
+// New creates a new Archive object. It takes configuration file and necessary
+// internal objects to handle the DwCA archive.
 func New(cfg config.Config, df dcfile.DCFile) Archive {
 	res := &arch{cfg: cfg, dcFile: df}
-	poolSize := 5
+	poolSize := cfg.JobsNum
 	gnpPool := make(chan gnparser.GNparser, poolSize)
 	for i := 0; i < poolSize; i++ {
 		cfgGNP := gnparser.NewConfig()
 		gnpPool <- gnparser.New(cfgGNP)
 	}
 	res.gnpPool = gnpPool
+	res.hierarchy = make(map[string]*hNode)
 	return res
 }
 
@@ -56,6 +90,8 @@ func (a *arch) Load() error {
 		return err
 	}
 
+	a.metaSimple = a.meta.Simplify()
+
 	err = a.getEML(path)
 	if err != nil {
 		return err
@@ -64,9 +100,14 @@ func (a *arch) Load() error {
 	return nil
 }
 
+// Close closes the archive and all associated files.
+func (a *arch) Close() error {
+	return a.dcFile.Close()
+}
+
 // Meta returns the Meta object of the archive.
 func (a *arch) Meta() *meta.Meta {
-	return a.metaData
+	return a.meta
 }
 
 // EML returns the EML object of the archive.
@@ -78,14 +119,14 @@ func (a *arch) EML() *eml.EML {
 // strings, each slice representing a row of the core file. If limit and
 // offset are provided, it returns the corresponding subset of the data.
 func (a *arch) CoreSlice(offset, limit int) ([][]string, error) {
-	return a.dcFile.CoreData(a.metaData, offset, limit)
+	return a.dcFile.CoreData(a.meta, offset, limit)
 }
 
 // CoreStream takes a channel and populates the channel with slices of
 // strings, each slice representing a row of the core file. The channel
 // is closed when the data is exhausted.
-func (a *arch) CoreStream(chCore chan<- []string) error {
-	return a.dcFile.CoreStream(a.metaData, chCore)
+func (a *arch) CoreStream(ctx context.Context, chCore chan<- []string) error {
+	return a.dcFile.CoreStream(ctx, a.meta, chCore)
 }
 
 // ExtensionSlice takes an index, offset and limit and returns a slice of
@@ -94,15 +135,19 @@ func (a *arch) CoreStream(chCore chan<- []string) error {
 // If limit and offset are provided, it returns the corresponding subset
 // of the data.
 func (a *arch) ExtensionSlice(index, offset, limit int) ([][]string, error) {
-	return a.dcFile.ExtensionData(index, a.metaData, offset, limit)
+	return a.dcFile.ExtensionData(index, a.meta, offset, limit)
 }
 
 // ExtensionStream takes an index and a channel and populates the channel
 // with slices of strings, each slice representing a row of the extension
 // file. The channel is closed when the data is exhausted.
 // Index corresponds the index of the extension in the extension list.
-func (a *arch) ExtensionStream(index int, ch chan<- []string) error {
-	return a.dcFile.ExtensionStream(index, a.metaData, ch)
+func (a *arch) ExtensionStream(
+	ctx context.Context,
+	index int,
+	ch chan<- []string,
+) error {
+	return a.dcFile.ExtensionStream(ctx, index, a.meta, ch)
 }
 
 func (a *arch) getMeta(path string) error {
@@ -110,18 +155,31 @@ func (a *arch) getMeta(path string) error {
 	if err != nil {
 		return err
 	}
+	defer metaFile.Close()
 
-	a.metaData, err = meta.New(metaFile)
+	a.meta, err = meta.New(metaFile)
 	if err != nil {
 		return err
 	}
+
+	// rewind file back to the beginning
+	_, err = metaFile.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	a.outputMeta, err = meta.New(metaFile)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (a *arch) getEML(path string) error {
 	emlFileName := "eml.xml"
-	if a.metaData.EMLFile != "" {
-		emlFileName = a.metaData.EMLFile
+	if a.meta.EMLFile != "" {
+		emlFileName = a.meta.EMLFile
 	}
 
 	emlFile, err := os.Open(filepath.Join(path, emlFileName))
@@ -149,7 +207,9 @@ func (a *arch) Diagnose() (*diagn.Diagnostics, error) {
 	prs := <-a.gnpPool
 	defer func() { a.gnpPool <- prs }()
 
-	return diagn.New(prs, cs, exts), nil
+	res := diagn.New(prs, cs, exts)
+	a.dgn = res
+	return res, nil
 }
 
 func (a *arch) coreSample() (
@@ -161,7 +221,7 @@ func (a *arch) coreSample() (
 	if err != nil {
 		return nil, nil, err
 	}
-	m := a.metaData.Simplify()
+	m := a.meta.Simplify()
 	coreRows := make([]map[string]string, len(dt))
 	exts := make(map[string]string)
 	for k, v := range m.ExtensionsData {
@@ -177,4 +237,45 @@ func (a *arch) coreSample() (
 		}
 	}
 	return coreRows, exts, nil
+}
+
+func (a *arch) NormalizedDwCA(filePath string) error {
+	var bs []byte
+	err := a.processCoreOutput()
+	if err != nil {
+		return err
+	}
+
+	err = a.processExtensionsOutput()
+	if err != nil {
+		return err
+	}
+
+	bs, err = a.meta.Bytes()
+	if err != nil {
+		return err
+	}
+	err = a.dcFile.SaveToFile("meta.xml", bs)
+	if err != nil {
+		return err
+	}
+
+	bs, err = a.emlData.Bytes()
+	if err != nil {
+		return err
+	}
+	err = a.dcFile.SaveToFile("eml.xml", bs)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *arch) ZipNormalizedDwCA(filePath string) error {
+	return a.dcFile.ZipOutput(filePath)
+}
+
+func (a *arch) TarGzNormalizedDwCA(filePath string) error {
+	return a.dcFile.TarGzOutput(filePath)
 }

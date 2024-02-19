@@ -1,6 +1,8 @@
 package dwca
 
 import (
+	"context"
+
 	"github.com/gnames/dwca/config"
 	"github.com/gnames/dwca/ent/eml"
 	"github.com/gnames/dwca/ent/meta"
@@ -14,6 +16,9 @@ type Archive interface {
 
 	// Load extracts the archive and loads data for EML and Meta.
 	Load() error
+
+	// Close cleans up temporary files.
+	Close() error
 
 	// Meta returns the Meta object of the archive.
 	Meta() *meta.Meta
@@ -29,7 +34,7 @@ type Archive interface {
 	// CoreStream takes a channel and populates the channel with slices of
 	// strings, each slice representing a row of the core file. The channel
 	// is closed when the data is exhausted.
-	CoreStream(chan<- []string) error
+	CoreStream(context.Context, chan<- []string) error
 
 	// ExtensionSlice takes an index, offset and limit and returns a slice of
 	// slices of strings, each slice representing a row of the extension file.
@@ -42,9 +47,22 @@ type Archive interface {
 	// with slices of strings, each slice representing a row of the extension
 	// file. The channel is closed when the data is exhausted.
 	// Index corresponds the index of the extension in the extension list.
-	ExtensionStream(index int, ch chan<- []string) error
+	ExtensionStream(ctx context.Context, index int, ch chan<- []string) error
 
 	// Diagnose goes through the data and determines which known ambiguities
 	// exist in Archive.
 	Diagnose() (*diagn.Diagnostics, error)
+
+	// NormalizedDwCA creates a normalized version of Darwin Core Archive
+	// with all known ambiguities resolved. The output is written to a file
+	// with the provided fileName.
+	NormalizedDwCA(filePath string) error
+
+	// ZipNormalizedDwCA compresses a normalized version of Darwin Core Archive
+	// to a ZIP file with the provided filePath.
+	ZipNormalizedDwCA(filePath string) error
+
+	// TarNormalizedDwCA compresses a normalized version of Darwin Core Archive
+	// to a TAR file with the provided filePath.
+	TarGzNormalizedDwCA(filePath string) error
 }

@@ -61,6 +61,8 @@ func TestExtract(t *testing.T) {
 			_, ok = err.(*dcfile.ErrUnknownArchiveType)
 		}
 		assert.True(ok, v.msg)
+		err = df.Close()
+		assert.Nil(err)
 	}
 }
 
@@ -110,5 +112,7 @@ func TestMetaDir(t *testing.T) {
 			_, ok = err.(*dcfile.ErrMultipleMetaFiles)
 		}
 		assert.True(ok)
+		err = df.Close()
+		assert.Nil(err)
 	}
 }

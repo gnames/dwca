@@ -24,7 +24,55 @@ func New(r io.Reader) (*Meta, error) {
 		err = &ErrMetaDecoder{OrigErr: err}
 		return nil, err
 	}
+
+	if res.Core.ID.Index == "" {
+		res.Core.ID.Idx = -1
+	} else {
+		res.Core.ID.Idx, err = strconv.Atoi(res.Core.ID.Index)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	fs := res.Core.Fields
+	for i := range fs {
+		if fs[i].Index == "" {
+			fs[i].Idx = -1
+			continue
+		}
+		fs[i].Idx, err = strconv.Atoi(fs[i].Index)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range res.Extensions {
+		if res.Extensions[i].CoreID.Index == "" {
+			res.Extensions[i].CoreID.Idx = -1
+			continue
+		}
+		res.Extensions[i].CoreID.Idx, err = strconv.Atoi(res.Extensions[i].CoreID.Index)
+		if err != nil {
+			return nil, err
+		}
+		fs := res.Extensions[i].Fields
+		for j := range fs {
+			if fs[j].Index == "" {
+				fs[j].Idx = -1
+				continue
+			}
+			fs[j].Idx, err = strconv.Atoi(fs[j].Index)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	return &res, nil
+}
+
+func (m *Meta) Bytes() ([]byte, error) {
+	return xml.MarshalIndent(m, "", "  ")
 }
 
 func (m *Meta) Simplify() *MetaSimple {

@@ -5,7 +5,7 @@ import (
 	"github.com/gnames/gnsys"
 )
 
-func (d *dcfileio) touchDirs() error {
+func (d *dcfileio) resetDirs() error {
 	err := d.rootDir()
 	if err != nil {
 		return err
@@ -20,17 +20,23 @@ func (d *dcfileio) touchDirs() error {
 	if err != nil {
 		return err
 	}
+
+	err = gnsys.MakeDir(d.cfg.OutputPath)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (d *dcfileio) rootDir() error {
-	switch gnsys.GetDirState(d.cfg.Path) {
+	switch gnsys.GetDirState(d.cfg.RootPath) {
 	case gnsys.DirAbsent:
-		return gnsys.MakeDir(d.cfg.Path)
+		return gnsys.MakeDir(d.cfg.RootPath)
 	case gnsys.DirEmpty:
 		return nil
 	case gnsys.DirNotEmpty:
-		return gnsys.CleanDir(d.cfg.Path)
+		return gnsys.CleanDir(d.cfg.RootPath)
 	default:
 		return &dcfile.ErrDir{}
 	}

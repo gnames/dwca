@@ -1,6 +1,7 @@
 package dwca_test
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
@@ -12,14 +13,14 @@ import (
 
 func TestFactory(t *testing.T) {
 	assert := assert.New(t)
-	res, err := dwca.Factory(filepath.Join("testdata", "data.zip"))
+	arc, err := dwca.Factory(filepath.Join("testdata", "data.zip"))
 	assert.Nil(err)
-	assert.Implements((*dwca.Archive)(nil), res)
+	assert.Implements((*dwca.Archive)(nil), arc)
 
 	badPath := filepath.Join("testdata", "dont_exist.zip")
-	res, err = dwca.Factory(badPath)
+	arc, err = dwca.Factory(badPath)
 	assert.NotNil(err)
-	assert.Nil(res)
+	assert.Nil(arc)
 	_, ok := err.(*dcfile.ErrFileNotFound)
 	assert.True(ok)
 }
@@ -55,6 +56,8 @@ func TestCoreData(t *testing.T) {
 		assert.Nil(err)
 		assert.Equal(v.len, len(data))
 		assert.Equal(v.res00, data[0][0])
+		err = arc.Close()
+		assert.Nil(err)
 	}
 }
 
@@ -81,7 +84,7 @@ func TestCoreStream(t *testing.T) {
 
 		ch := make(chan []string)
 		go func() {
-			err := arc.CoreStream(ch)
+			err := arc.CoreStream(context.Background(), ch)
 			assert.Nil(err)
 		}()
 
@@ -90,6 +93,8 @@ func TestCoreStream(t *testing.T) {
 			count++
 		}
 		assert.Equal(v.len, count)
+		err = arc.Close()
+		assert.Nil(err)
 	}
 }
 
@@ -127,6 +132,8 @@ func TestExtensionData(t *testing.T) {
 		if len(data) > 0 {
 			assert.Equal(v.res00, data[0][0])
 		}
+		err = arc.Close()
+		assert.Nil(err)
 	}
 }
 
@@ -140,6 +147,7 @@ func TestExtensionStream(t *testing.T) {
 	}{
 		{"tar.gz", "data.tar.gz", 0, 1},
 	}
+	ctx := context.Background()
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
 		arc, err := dwca.Factory(path)
@@ -154,7 +162,7 @@ func TestExtensionStream(t *testing.T) {
 
 		ch := make(chan []string)
 		go func() {
-			err := arc.ExtensionStream(v.index, ch)
+			err = arc.ExtensionStream(ctx, v.index, ch)
 			assert.Nil(err)
 		}()
 
@@ -163,6 +171,8 @@ func TestExtensionStream(t *testing.T) {
 			count++
 		}
 		assert.Equal(v.len, count)
+		err = arc.Close()
+		assert.Nil(err)
 	}
 }
 
@@ -195,6 +205,8 @@ func TestSciNameDiagnose(t *testing.T) {
 		diag, err := arc.Diagnose()
 		assert.Nil(err)
 		assert.Equal(v.snType.String(), diag.SciNameType.String())
+		err = arc.Close()
+		assert.Nil(err)
 	}
 }
 
@@ -228,10 +240,12 @@ func TestSynDiagnose(t *testing.T) {
 		diag, err := arc.Diagnose()
 		assert.Nil(err)
 		assert.Equal(v.snType.String(), diag.SynonymType.String())
+		err = arc.Close()
+		assert.Nil(err)
 	}
 }
 
-func TestHierDiagnose(t *testing.T) {
+func TestHierarchyDiagnos(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []struct {
@@ -256,9 +270,10 @@ func TestHierDiagnose(t *testing.T) {
 
 		meta := arc.Meta()
 		assert.NotNil(meta)
-
 		diag, err := arc.Diagnose()
 		assert.Nil(err)
 		assert.Equal(v.hType.String(), diag.HierType.String())
+		err = arc.Close()
+		assert.Nil(err)
 	}
 }

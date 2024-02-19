@@ -23,3 +23,11 @@ func New(r io.Reader) (*EML, error) {
 	}
 	return &res, nil
 }
+
+func (e *EML) Bytes() ([]byte, error) {
+	bs, err := xml.MarshalIndent(e, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	return bs, nil
+}

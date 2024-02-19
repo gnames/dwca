@@ -7,10 +7,10 @@ type Meta struct {
 }
 
 type Archive struct {
-	XMLName    xml.Name    `xml:"archive"`
-	EMLFile    string      `xml:"metadata,attr"`
-	Core       Core        `xml:"core"`
-	Extensions []Extension `xml:"extension"`
+	XMLName    xml.Name     `xml:"archive"`
+	EMLFile    string       `xml:"metadata,attr"`
+	Core       Core         `xml:"core"`
+	Extensions []*Extension `xml:"extension"`
 }
 
 // Attr holds the common fields for Core and Extension.
@@ -37,24 +37,28 @@ type Extension struct {
 	CoreID CoreID `xml:"coreid"`
 }
 
-// Files holds the location of the files.
+// Files holds the location of files.
 type Files struct {
+	// Location provides path to a file.
 	Location string `xml:"location"`
 }
 
 // ID holds the fields for the Core ID.
 type ID struct {
 	Index string `xml:"index,attr"`
+	Idx   int
 	Term  string `xml:"term,attr"`
 }
 
 // CoreID holds the fields for the CoreID data.
 type CoreID struct {
 	Index string `xml:"index,attr"`
+	Idx   int
 }
 
 // Field holds the fields of the data.
 type Field struct {
 	Index string `xml:"index,attr"`
+	Idx   int
 	Term  string `xml:"term,attr"`
 }
