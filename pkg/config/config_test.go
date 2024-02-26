@@ -3,7 +3,7 @@ package config_test
 import (
 	"testing"
 
-	"github.com/gnames/dwca/config"
+	"github.com/gnames/dwca/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 

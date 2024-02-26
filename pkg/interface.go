@@ -3,10 +3,9 @@ package dwca
 import (
 	"context"
 
-	"github.com/gnames/dwca/config"
-	"github.com/gnames/dwca/ent/eml"
-	"github.com/gnames/dwca/ent/meta"
-	"github.com/gnames/dwca/internal/ent/diagn"
+	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/dwca/pkg/ent/eml"
+	"github.com/gnames/dwca/pkg/ent/meta"
 )
 
 // Archive is an interface for Darwin Core Archive objects.
@@ -14,17 +13,17 @@ type Archive interface {
 	// Config returns the configuration object of the archive.
 	Config() config.Config
 
-	// Load extracts the archive and loads data for EML and Meta.
-	Load() error
-
-	// Close cleans up temporary files.
-	Close() error
-
 	// Meta returns the Meta object of the archive.
 	Meta() *meta.Meta
 
 	// EML returns the EML object of the archive.
 	EML() *eml.EML
+
+	// Load extracts the archive and loads data for EML and Meta.
+	Load() error
+
+	// Close cleans up temporary files.
+	Close() error
 
 	// CoreSlice takes an offset and a limit and returns a slice of slices of
 	// strings, each slice representing a row of the core file. If limit and
@@ -48,10 +47,6 @@ type Archive interface {
 	// file. The channel is closed when the data is exhausted.
 	// Index corresponds the index of the extension in the extension list.
 	ExtensionStream(ctx context.Context, index int, ch chan<- []string) error
-
-	// Diagnose goes through the data and determines which known ambiguities
-	// exist in Archive.
-	Diagnose() (*diagn.Diagnostics, error)
 
 	// NormalizedDwCA creates a normalized version of Darwin Core Archive
 	// with all known ambiguities resolved. The output is written to a file

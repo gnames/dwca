@@ -3,7 +3,7 @@ package dcfile
 import (
 	"context"
 
-	"github.com/gnames/dwca/ent/meta"
+	"github.com/gnames/dwca/pkg/ent/meta"
 )
 
 // DCFile represents a Darwin Core Archive file. It is normally a compressed

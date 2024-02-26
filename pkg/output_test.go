@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gnames/dwca"
 	"github.com/gnames/dwca/internal/ent/diagn"
+	dwca "github.com/gnames/dwca/pkg"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,8 +35,6 @@ func TestNormalizeDwCA(t *testing.T) {
 		meta := arc.Meta()
 		assert.NotNil(meta)
 
-		_, err = arc.Diagnose()
-		assert.Nil(err)
 		err = arc.NormalizedDwCA(path)
 		assert.Nil(err)
 	}
@@ -59,8 +57,6 @@ func TestCompress(t *testing.T) {
 		arc, err := dwca.Factory(path)
 		assert.Nil(err)
 		err = arc.Load()
-		assert.Nil(err)
-		_, err = arc.Diagnose()
 		assert.Nil(err)
 		err = arc.NormalizedDwCA(path)
 		assert.Nil(err)

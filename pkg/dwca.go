@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gnames/dwca/config"
-	"github.com/gnames/dwca/ent/eml"
-	"github.com/gnames/dwca/ent/meta"
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/dwca/internal/ent/diagn"
+	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/dwca/pkg/ent/eml"
+	"github.com/gnames/dwca/pkg/ent/meta"
+	"github.com/gnames/gnlib/ent/gnvers"
 	"github.com/gnames/gnparser"
 )
 
@@ -69,6 +70,13 @@ func New(cfg config.Config, df dcfile.DCFile) Archive {
 	return res
 }
 
+func Version() gnvers.Version {
+	return gnvers.Version{
+		Version: Vers,
+		Build:   Build,
+	}
+}
+
 // Config returns the configuration object of the archive.
 func (a *arch) Config() config.Config {
 	return a.cfg
@@ -93,6 +101,11 @@ func (a *arch) Load() error {
 	a.metaSimple = a.meta.Simplify()
 
 	err = a.getEML(path)
+	if err != nil {
+		return err
+	}
+
+	err = a.getDiagnostics()
 	if err != nil {
 		return err
 	}
@@ -195,13 +208,13 @@ func (a *arch) getEML(path string) error {
 	return nil
 }
 
-func (a *arch) Diagnose() (*diagn.Diagnostics, error) {
+func (a *arch) getDiagnostics() error {
 	cs, exts, err := a.coreSample()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if cs == nil {
-		return nil, errors.New("no data in the core file")
+		return errors.New("no data in the core file")
 	}
 
 	prs := <-a.gnpPool
@@ -209,7 +222,7 @@ func (a *arch) Diagnose() (*diagn.Diagnostics, error) {
 
 	res := diagn.New(prs, cs, exts)
 	a.dgn = res
-	return res, nil
+	return nil
 }
 
 func (a *arch) coreSample() (

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gnames/dwca/ent/eml"
+	"github.com/gnames/dwca/pkg/ent/eml"
 	"github.com/stretchr/testify/assert"
 )
 

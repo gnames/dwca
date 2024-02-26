@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gnames/dwca/ent/meta"
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/dwca/internal/ent/diagn"
+	"github.com/gnames/dwca/pkg/ent/meta"
 	"github.com/gnames/gnparser"
 	"golang.org/x/sync/errgroup"
 )

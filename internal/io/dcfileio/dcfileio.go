@@ -11,9 +11,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gnames/dwca/config"
-	"github.com/gnames/dwca/ent/meta"
 	"github.com/gnames/dwca/internal/ent/dcfile"
+	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/dwca/pkg/ent/meta"
 	"github.com/gnames/gnsys"
 )
 

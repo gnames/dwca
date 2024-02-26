@@ -1,8 +1,8 @@
 package dwca
 
 import (
-	"github.com/gnames/dwca/config"
 	"github.com/gnames/dwca/internal/io/dcfileio"
+	"github.com/gnames/dwca/pkg/config"
 )
 
 // Factory creates a new DwCA object. It takes a list of options for the

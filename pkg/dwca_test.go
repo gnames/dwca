@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gnames/dwca"
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/dwca/internal/ent/diagn"
+	dwca "github.com/gnames/dwca/pkg"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -176,40 +176,6 @@ func TestExtensionStream(t *testing.T) {
 	}
 }
 
-func TestSciNameDiagnose(t *testing.T) {
-	assert := assert.New(t)
-
-	tests := []struct {
-		msg    string
-		file   string
-		snType diagn.SciNameType
-	}{
-		{"can", "canonical.tar.gz", diagn.SciNameCanonical},
-		{"full+auth", "full-auth-dup.tar.gz", diagn.SciNameFull},
-		{"full", "unknown.tar.gz", diagn.SciNameUnknown},
-		{"full", "composite.tar.gz", diagn.SciNameComposite},
-	}
-
-	for _, v := range tests {
-		path := filepath.Join("testdata", "diagn", "scinames", v.file)
-		arc, err := dwca.Factory(path)
-		assert.Nil(err)
-		assert.Implements((*dwca.Archive)(nil), arc)
-
-		err = arc.Load()
-		assert.Nil(err)
-
-		meta := arc.Meta()
-		assert.NotNil(meta)
-
-		diag, err := arc.Diagnose()
-		assert.Nil(err)
-		assert.Equal(v.snType.String(), diag.SciNameType.String())
-		err = arc.Close()
-		assert.Nil(err)
-	}
-}
-
 func TestSynDiagnose(t *testing.T) {
 	assert := assert.New(t)
 
@@ -237,42 +203,6 @@ func TestSynDiagnose(t *testing.T) {
 		meta := arc.Meta()
 		assert.NotNil(meta)
 
-		diag, err := arc.Diagnose()
-		assert.Nil(err)
-		assert.Equal(v.snType.String(), diag.SynonymType.String())
-		err = arc.Close()
-		assert.Nil(err)
-	}
-}
-
-func TestHierarchyDiagnos(t *testing.T) {
-	assert := assert.New(t)
-
-	tests := []struct {
-		msg   string
-		file  string
-		hType diagn.HierType
-	}{
-		{"tree", "tree.tar.gz", diagn.HierTree},
-		{"tree", "tree_depr.tar.gz", diagn.HierTree},
-		{"flat", "flat.tar.gz", diagn.HierFlat},
-		{"unknown", "unknown.tar.gz", diagn.HierUnknown},
-	}
-
-	for _, v := range tests {
-		path := filepath.Join("testdata", "diagn", "hierarchy", v.file)
-		arc, err := dwca.Factory(path)
-		assert.Nil(err)
-		assert.Implements((*dwca.Archive)(nil), arc)
-
-		err = arc.Load()
-		assert.Nil(err)
-
-		meta := arc.Meta()
-		assert.NotNil(meta)
-		diag, err := arc.Diagnose()
-		assert.Nil(err)
-		assert.Equal(v.hType.String(), diag.HierType.String())
 		err = arc.Close()
 		assert.Nil(err)
 	}

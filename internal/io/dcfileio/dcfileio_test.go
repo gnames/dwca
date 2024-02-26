@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gnames/dwca/config"
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/dwca/internal/io/dcfileio"
+	"github.com/gnames/dwca/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +38,7 @@ func TestExtract(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		path := filepath.Join("..", "..", "..", "testdata", v.file)
+		path := filepath.Join("..", "..", "..", "pkg", "testdata", v.file)
 		cfg := config.New()
 		df, err := dcfileio.New(cfg, path)
 		assert.Nil(err)
@@ -84,7 +84,10 @@ func TestMetaDir(t *testing.T) {
 	}
 	for _, v := range tests {
 		cfg := config.New()
-		df, err := dcfileio.New(cfg, filepath.Join("..", "..", "..", "testdata", v.file))
+		df, err := dcfileio.New(
+			cfg,
+			filepath.Join("..", "..", "..", "pkg", "testdata", v.file),
+		)
 		assert.Nil(err)
 
 		// delte old archive dir
