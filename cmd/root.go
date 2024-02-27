@@ -24,8 +24,11 @@ package cmd
 import (
 	"os"
 
+	"github.com/gnames/dwca/pkg/config"
 	"github.com/spf13/cobra"
 )
+
+var opts []config.Option
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

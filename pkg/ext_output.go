@@ -2,6 +2,7 @@ package dwca
 
 import (
 	"context"
+	"log/slog"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -18,6 +19,7 @@ func (a *arch) processExtensionsOutput() error {
 
 func (a *arch) processExt(idx int) error {
 	ext := a.meta.Extensions[idx]
+	slog.Info("Processing extension", "file", ext.Files.Location)
 	var maxIdx int
 	for _, v := range ext.Fields {
 		if v.Idx > maxIdx {

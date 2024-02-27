@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -84,6 +85,7 @@ func (a *arch) Config() config.Config {
 
 // Load extracts the archive and loads data for EML and Meta.
 func (a *arch) Load() error {
+	slog.Info("Loading data from input DwCA file")
 	err := a.dcFile.Extract()
 	if err != nil {
 		return err
@@ -93,6 +95,7 @@ func (a *arch) Load() error {
 		return err
 	}
 
+	slog.Info("Reading meta.xml and eml.xml files")
 	err = a.getMeta(path)
 	if err != nil {
 		return err
@@ -105,6 +108,7 @@ func (a *arch) Load() error {
 		return err
 	}
 
+	slog.Info("Determinging properties of the archive")
 	err = a.getDiagnostics()
 	if err != nil {
 		return err
@@ -252,18 +256,21 @@ func (a *arch) coreSample() (
 	return coreRows, exts, nil
 }
 
-func (a *arch) NormalizedDwCA(filePath string) error {
+func (a *arch) NormalizedDwCA() error {
+	slog.Info("Processing Core file")
 	var bs []byte
 	err := a.processCoreOutput()
 	if err != nil {
 		return err
 	}
 
+	slog.Info("Processing Extensions files")
 	err = a.processExtensionsOutput()
 	if err != nil {
 		return err
 	}
 
+	slog.Info("Saving normalized meta.xml and eml.xml files")
 	bs, err = a.meta.Bytes()
 	if err != nil {
 		return err
@@ -286,9 +293,21 @@ func (a *arch) NormalizedDwCA(filePath string) error {
 }
 
 func (a *arch) ZipNormalizedDwCA(filePath string) error {
-	return a.dcFile.ZipOutput(filePath)
+	slog.Info("Creating zip archive", "output", filePath)
+	err := a.dcFile.ZipOutput(filePath)
+	if err != nil {
+		return err
+	}
+	slog.Info("The zip archive created", "output", filePath)
+	return nil
 }
 
 func (a *arch) TarGzNormalizedDwCA(filePath string) error {
-	return a.dcFile.TarGzOutput(filePath)
+	slog.Info("Creating tar.gz archive", "output", filePath)
+	err := a.dcFile.TarGzOutput(filePath)
+	if err != nil {
+		return err
+	}
+	slog.Info("The tar.gz archive created", "output", filePath)
+	return nil
 }

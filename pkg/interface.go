@@ -51,7 +51,7 @@ type Archive interface {
 	// NormalizedDwCA creates a normalized version of Darwin Core Archive
 	// with all known ambiguities resolved. The output is written to a file
 	// with the provided fileName.
-	NormalizedDwCA(filePath string) error
+	NormalizedDwCA() error
 
 	// ZipNormalizedDwCA compresses a normalized version of Darwin Core Archive
 	// to a ZIP file with the provided filePath.

@@ -7,13 +7,17 @@ import (
 	"context"
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/dwca/pkg/config"
 	"github.com/gnames/dwca/pkg/ent/meta"
+	"github.com/gnames/gncsv"
 	"github.com/gnames/gnsys"
 )
 
@@ -173,11 +177,12 @@ func (d *dcfileio) CoreStream(ctx context.Context, meta *meta.Meta, coreChan cha
 		r.Read()
 	}
 
-loop:
+	var count int64
+
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
-			break loop
+			break
 		}
 		if err != nil {
 			return &dcfile.ErrCoreRead{Err: err}
@@ -187,6 +192,11 @@ loop:
 		case <-ctx.Done():
 			return &dcfile.ErrContext{Err: ctx.Err()}
 		default:
+			count++
+			if count%100_000 == 0 {
+				fmt.Printf("\r%s", strings.Repeat(" ", 35))
+				fmt.Printf("\rProcessed %s lines of Core", humanize.Comma(count))
+			}
 			coreChan <- row
 		}
 	}
@@ -466,10 +476,11 @@ func (d *dcfileio) Close() error {
 type fileAttrs struct {
 	path         string
 	colSep       string
+	quote        string
 	ignoreHeader string
 }
 
-func (d *dcfileio) openCSV(attr fileAttrs) (*csv.Reader, *os.File, error) {
+func (d *dcfileio) openCSV(attr fileAttrs) (*gncsv.Reader, *os.File, error) {
 	path := attr.path
 	if path == "" {
 		return nil, nil, errors.New("core file location is empty")
@@ -480,8 +491,14 @@ func (d *dcfileio) openCSV(attr fileAttrs) (*csv.Reader, *os.File, error) {
 	}
 
 	colSep := ','
+	quote := '"'
 	if attr.colSep == "\\t" {
 		colSep = '\t'
+
+	}
+
+	if attr.quote == "" {
+		quote = rune(7) // bell character
 	}
 
 	path = filepath.Join(basePath, path)
@@ -491,15 +508,16 @@ func (d *dcfileio) openCSV(attr fileAttrs) (*csv.Reader, *os.File, error) {
 		return nil, nil, err
 	}
 
-	r := csv.NewReader(f)
+	r := gncsv.NewReader(f)
 	r.Comma = colSep
+	r.Quote = quote
 	// allow variable number of fields
 	r.FieldsPerRecord = -1
 
-	if r.Comma == '\t' {
-		// lax quotes for tab-separated files
-		r.LazyQuotes = true
-	}
+	// if r.Comma == '\t' {
+	// 	// lax quotes for tab-separated files
+	// 	r.LazyQuotes = true
+	// }
 
 	return r, f, nil
 }

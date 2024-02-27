@@ -39,10 +39,12 @@ func (a *arch) processCoreOutput() error {
 
 	// try to build hierarchy out of parent-child relationship
 	if !a.flatHierarchy() {
+		slog.Info("Building hierarchy for Core", "file", a.metaSimple.Location)
 		err := a.buildHierarchy()
 		if err != nil {
 			return err
 		}
+		slog.Info("Hierarchy built", "file", a.metaSimple.Location)
 	}
 
 	// context for the whole process
@@ -54,6 +56,7 @@ func (a *arch) processCoreOutput() error {
 	var wg sync.WaitGroup
 
 	// start workers
+	slog.Info("Processing Core rows", "file", a.metaSimple.Location)
 	for i := 0; i < a.cfg.JobsNum; i++ {
 		wg.Add(1)
 		g.Go(func() error {

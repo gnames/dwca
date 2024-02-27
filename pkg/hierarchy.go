@@ -2,6 +2,7 @@ package dwca
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"strings"
 	"sync"
@@ -11,10 +12,11 @@ import (
 )
 
 type hNode struct {
-	id       string
-	parentID string
-	name     string
-	rank     string
+	id         string
+	parentID   string
+	acceptedID string
+	name       string
+	rank       string
 }
 
 func (a *arch) buildHierarchy() error {
@@ -106,9 +108,32 @@ func (a *arch) processHierarchyRow(p gnparser.GNparser, v []string) (*hNode, err
 		}
 	}
 
-	parentID := v[a.metaSimple.FieldsData["parentnameusageid"].Index]
+	id := v[a.metaSimple.Index]
+	if id == "" {
+		return nil, errors.New("ID is empty")
+	}
+
+	var parentID string
+	if field, ok := a.metaSimple.FieldsData["parentnameusageid"]; ok {
+		parentID = v[field.Index]
+	}
 	if parentID == "" {
-		parentID = v[a.metaSimple.FieldsData["highertaxonid"].Index]
+		if field, ok := a.metaSimple.FieldsData["highertaxonid"]; ok {
+			parentID = v[field.Index]
+		}
+	}
+
+	if parentID == id {
+		parentID = ""
+	}
+
+	var acceptedID string
+	if field, ok := a.metaSimple.FieldsData["acceptednameusageid"]; ok {
+		acceptedID = v[field.Index]
+	}
+
+	if acceptedID == id {
+		acceptedID = ""
 	}
 
 	var rank string
@@ -117,10 +142,11 @@ func (a *arch) processHierarchyRow(p gnparser.GNparser, v []string) (*hNode, err
 	}
 
 	res := &hNode{
-		id:       v[a.metaSimple.Index],
-		rank:     rank,
-		name:     canonical,
-		parentID: parentID,
+		id:         strings.TrimSpace(id),
+		rank:       strings.TrimSpace(rank),
+		name:       strings.TrimSpace(canonical),
+		parentID:   strings.TrimSpace(parentID),
+		acceptedID: strings.TrimSpace(acceptedID),
 	}
 
 	return res, nil
@@ -158,6 +184,7 @@ func (a *arch) getBreadcrumbs(id string) (bcTx, bcRnk, bcIdx string) {
 }
 
 func (a *arch) breadcrumbsNodes(id string) []*hNode {
+	id = strings.TrimSpace(id)
 	var res []*hNode
 	var node *hNode
 	var ok bool
@@ -166,12 +193,18 @@ func (a *arch) breadcrumbsNodes(id string) []*hNode {
 	currID = id
 	for currID != "" {
 		if node, ok = a.hierarchy[currID]; !ok {
-			slog.Warn("Hierarchy node not found", "id", currID)
+			slog.Warn("Hierarchy node not found, making short breadcumbs", "id", currID)
 			return res
 		}
+
+		if node.parentID == "" && node.acceptedID != "" {
+			currID = node.acceptedID
+			continue
+		}
+
 		res = append([]*hNode{node}, res...)
 		prevID = currID
-		currID = strings.TrimSpace(node.parentID)
+		currID = node.parentID
 		if currID == prevID {
 			return res
 		}

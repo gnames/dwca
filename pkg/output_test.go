@@ -35,7 +35,7 @@ func TestNormalizeDwCA(t *testing.T) {
 		meta := arc.Meta()
 		assert.NotNil(meta)
 
-		err = arc.NormalizedDwCA(path)
+		err = arc.NormalizedDwCA()
 		assert.Nil(err)
 	}
 }
@@ -48,7 +48,7 @@ func TestCompress(t *testing.T) {
 		out string
 	}{
 		{"zip", "flat.tar.gz", "flat.zip"},
-		// {"tar", "flat.tar.gz", "flat.tar.gz"},
+		{"tar", "flat.tar.gz", "flat.tar.gz"},
 	}
 
 	for _, v := range tests {
@@ -58,7 +58,7 @@ func TestCompress(t *testing.T) {
 		assert.Nil(err)
 		err = arc.Load()
 		assert.Nil(err)
-		err = arc.NormalizedDwCA(path)
+		err = arc.NormalizedDwCA()
 		assert.Nil(err)
 		outPath := filepath.Join(arc.Config().DownloadPath, v.out)
 		if v.msg == "zip" {

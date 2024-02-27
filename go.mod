@@ -1,8 +1,11 @@
 module github.com/gnames/dwca
 
-go 1.21
+go 1.22.0
 
 require (
+	github.com/dustin/go-humanize v1.0.1
+	github.com/gnames/gncsv v0.0.1
+	github.com/gnames/gnlib v0.20.0
 	github.com/gnames/gnparser v1.9.0
 	github.com/gnames/gnsys v0.2.4
 	github.com/spf13/cobra v1.8.0
@@ -16,7 +19,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gnames/gnfmt v0.4.2 // indirect
-	github.com/gnames/gnlib v0.20.0 // indirect
 	github.com/gnames/gnuuid v0.1.1 // indirect
 	github.com/gnames/organizer v0.1.1 // indirect
 	github.com/gnames/tribool v0.1.1 // indirect
