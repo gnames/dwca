@@ -5,7 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Add [#12]: add cli command.
+## [v0.1.0] - 2024-02-29 Thu
+
+Add [#14]: configuration YAML file, first binary release.
+Add [#13]: normalize cli command.
+Add [#12]: cli command.
 Add [#11]: normalize DwCA and save into a file.
 Add [#10]: find how sci-name, hierarchy, synonyms are expressed in a DwCA file.
 Add [#7]: normalize synonyms.

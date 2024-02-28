@@ -9,6 +9,10 @@ FLAGS_LD = -ldflags "-X github.com/gnames/$(PROJ_NAME)/pkg.Build=$(DATE) \
                      -X github.com/gnames/$(PROJ_NAME)/pkg.Vers=$(VERSION)"
 FLAGS_REL = -trimpath -ldflags "-s -w -X codeberg.org/dimus/$(PROJ_NAME)/pkg.Build=$(DATE)"
 FLAGS_SHARED = $(NO_C) GOARCH=amd64
+FLAGS_LINUX = $(FLAGS_SHARED) GOOS=linux
+FLAGS_MAC = $(FLAGS_SHARED) GOOS=darwin
+FLAGS_MAC_ARM = $GOARCH=arm64 GOOS=darwin
+FLAGS_WIN = $(FLAGS_SHARED) GOOS=windows
 
 RELEASE_DIR = /tmp
 TEST_OPTS = -count=1 -p 1 -shuffle=on -coverprofile=coverage.txt -covermode=atomic
@@ -57,10 +61,19 @@ install: ## Build and install binary
 	$(NO_C) $(GOINSTALL)
 
 ## Release
-release: buildrel dockerhub ## Build and package binaries for a release
+release: buildrel ## Build and package binaries for a release
 	$(GOCLEAN); \
-	$(FLAGS_SHARED) GOOS=linux $(GORELEASE); \
+	$(FLAGS_LINUX) $(GORELEASE); \
 	tar zcvf $(RELEASE_DIR)/$(PROJ_NAME)-$(VER)-linux.tar.gz $(PROJ_NAME); \
+	$(GOCLEAN); \
+	$(FLAGS_MAC) $(GORELEASE); \
+	tar zcvf /tmp/$(PROJ_NAME)-$(VER)-mac.tar.gz $(PROJ_NAME); \
+	$(GOCLEAN); \
+	$(FLAGS_MAC_ARM) $(GORELEASE); \
+	tar zcvf /tmp/$(PROJ_NAME)-$(VER)-mac.tar.gz $(PROJ_NAME); \
+	$(GOCLEAN); \
+	$(FLAGS_WIN) $(GORELEASE); \
+	zip -9 /tmp/$(PROJ_NAME)-$(VER)-win-64.zip $(PROJ_NAME).exe; \
 	$(GOCLEAN);
 
 ## Clean

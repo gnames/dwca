@@ -21,8 +21,17 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/gnames/dwca/cmd"
+import (
+	"log/slog"
+	"os"
+
+	"github.com/gnames/dwca/cmd"
+	"github.com/lmittmann/tint"
+)
 
 func main() {
+	handle := slog.New(tint.NewHandler(os.Stderr, nil))
+	slog.SetDefault(handle)
+
 	cmd.Execute()
 }

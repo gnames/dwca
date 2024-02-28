@@ -15,5 +15,5 @@ type ErrDecoder struct {
 }
 
 func (e *ErrDecoder) Error() string {
-	return fmt.Sprintf("cannot decode to EML: %v", e.OrigErr)
+	return fmt.Sprintf("cannot decode eml.xml: %v", e.OrigErr)
 }

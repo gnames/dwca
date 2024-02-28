@@ -147,16 +147,26 @@ func (a *arch) updateOutputCore(maxIdx int) {
 				Index: strconv.Itoa(idx)},
 		)
 	}
-	a.outputMeta.Core.FieldsEnclosedBy = "\""
-	a.outputMeta.Core.FieldsTerminatedBy = ","
+	ext := filepath.Ext(a.metaSimple.Location)
+	location := a.metaSimple.Location[:len(a.metaSimple.Location)-len(ext)] + ".txt"
+
+	delim := ","
+	if a.cfg.OutputCSVType == "tsv" {
+		delim = `\t`
+	}
+
+	a.outputMeta.Core.Files.Location = location
+	a.outputMeta.Core.FieldsEnclosedBy = `"`
+	a.outputMeta.Core.FieldsTerminatedBy = delim
 	a.outputMeta.Core.IgnoreHeaderLines = "1"
-	a.outputMeta.Core.LinesTerminatedBy = "\n"
+	a.outputMeta.Core.LinesTerminatedBy = `\n`
 }
 
 func (a *arch) saveCoreOutput(ctx context.Context, chOut <-chan []string) error {
 	file := a.metaSimple.Location
 	fields := fieldNames(a.outputMeta.Core.Fields)
-	return a.dcFile.ExportCSVStream(ctx, file, fields, chOut)
+	delim := a.outputMeta.Core.FieldsTerminatedBy
+	return a.dcFile.ExportCSVStream(ctx, file, fields, delim, chOut)
 }
 
 func fieldNames(fs []meta.Field) []string {

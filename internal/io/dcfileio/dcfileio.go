@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -200,6 +201,8 @@ func (d *dcfileio) CoreStream(ctx context.Context, meta *meta.Meta, coreChan cha
 			coreChan <- row
 		}
 	}
+	fmt.Print("\r")
+	slog.Info("Processed Core file", "lines", humanize.Comma(count))
 
 	close(coreChan)
 	return nil
@@ -316,6 +319,7 @@ func (d *dcfileio) ExportCSVStream(
 	ctx context.Context,
 	file string,
 	fields []string,
+	delim string,
 	outChan <-chan []string,
 ) error {
 	path := filepath.Join(d.cfg.OutputPath, file)
@@ -327,6 +331,9 @@ func (d *dcfileio) ExportCSVStream(
 
 	w := csv.NewWriter(f)
 	w.Comma = ','
+	if delim == "\\t" {
+		w.Comma = '\t'
+	}
 
 	err = w.Write(fields)
 	if err != nil {

@@ -108,7 +108,7 @@ func (a *arch) Load() error {
 		return err
 	}
 
-	slog.Info("Determinging properties of the archive")
+	slog.Info("Analyzing the archive")
 	err = a.getDiagnostics()
 	if err != nil {
 		return err
@@ -258,7 +258,6 @@ func (a *arch) coreSample() (
 
 func (a *arch) NormalizedDwCA() error {
 	slog.Info("Processing Core file")
-	var bs []byte
 	err := a.processCoreOutput()
 	if err != nil {
 		return err
@@ -271,20 +270,12 @@ func (a *arch) NormalizedDwCA() error {
 	}
 
 	slog.Info("Saving normalized meta.xml and eml.xml files")
-	bs, err = a.meta.Bytes()
-	if err != nil {
-		return err
-	}
-	err = a.dcFile.SaveToFile("meta.xml", bs)
+	err = a.saveMetaOutput()
 	if err != nil {
 		return err
 	}
 
-	bs, err = a.emlData.Bytes()
-	if err != nil {
-		return err
-	}
-	err = a.dcFile.SaveToFile("eml.xml", bs)
+	err = a.saveEmlOutput()
 	if err != nil {
 		return err
 	}

@@ -19,5 +19,5 @@ type ErrMetaDecoder struct {
 }
 
 func (e *ErrMetaDecoder) Error() string {
-	return fmt.Sprintf("cannot decode to EML: %v", e.OrigErr)
+	return fmt.Sprintf("cannot decode meta.xml: %v", e.OrigErr)
 }

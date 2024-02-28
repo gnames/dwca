@@ -8,6 +8,7 @@ require (
 	github.com/gnames/gnlib v0.20.0
 	github.com/gnames/gnparser v1.9.0
 	github.com/gnames/gnsys v0.2.4
+	github.com/lmittmann/tint v1.0.4
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/cobra-cli v1.3.0
 	github.com/stretchr/testify v1.8.4

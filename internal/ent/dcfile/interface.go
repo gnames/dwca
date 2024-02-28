@@ -61,6 +61,7 @@ type DCFile interface {
 		ctx context.Context,
 		file string,
 		fields []string,
+		delim string,
 		outChan <-chan []string) error
 
 	// SaveToFile saves bytes slice to a file with the provided name.

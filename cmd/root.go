@@ -22,11 +22,27 @@ THE SOFTWARE.
 package cmd
 
 import (
+	_ "embed"
+	"fmt"
+	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/gnsys"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+//go:embed dwca.yaml
+var configText string
+
+type configData struct {
+	RootPath                 string
+	OutputArchiveCompression string
+	OutputCSVType            string
+	JobsNum                  int
+}
 
 var opts []config.Option
 
@@ -38,7 +54,7 @@ var rootCmd = &cobra.Command{
 	(DwC-A).`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		versionFlag(cmd)
 		flags := []flagFunc{debugFlag}
 		for _, v := range flags {
@@ -58,13 +74,126 @@ func Execute() {
 }
 
 func init() {
+	cobra.OnInitialize(initConfig)
+
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
+	rootCmd.PersistentFlags().IntP(
+		"jobs-number", "j", 0,
+		"number of concurrent jobs",
+	)
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.dwca.yaml)")
+	rootCmd.PersistentFlags().StringP(
+		"root-dir", "r", "",
+		"root path for the DwCA file",
+	)
+
+	rootCmd.PersistentFlags().BoolP(
+		"debug", "d", false,
+		"debug mode",
+	)
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("version", "V", false, "show version")
+}
+
+// initConfig reads in config file and ENV variables if set.
+func initConfig() {
+	var configDir string
+	var err error
+	configFile := "dwca"
+	home, err := os.UserHomeDir()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+	configDir = filepath.Join(home, ".config")
+
+	// Search config in home directory with name ".gnmatcher" (without extension).
+	viper.AddConfigPath(configDir)
+	viper.SetConfigName(configFile)
+
+	_ = viper.BindEnv("RootPath", "DWCA_ROOT_PATH")
+	_ = viper.BindEnv("OutputArchiveCompression", "DWCA_OUTPUT_ARCHIVE_COMPRESSION")
+	_ = viper.BindEnv("OutputCSVType", "DWCA_OUTPUT_CSV_TYPE")
+	_ = viper.BindEnv("JobsNum", "DWCA_JOBS_NUM")
+
+	viper.AutomaticEnv() // read in environment variables that match
+
+	configPath := filepath.Join(configDir, fmt.Sprintf("%s.yaml", configFile))
+	touchConfigFile(configPath)
+
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err == nil {
+		msg := fmt.Sprintf("Using config file %s.", viper.ConfigFileUsed())
+		slog.Info(msg)
+	}
+
+	getOpts()
+}
+
+// getOpts imports data from the configuration file. Some of the settings can
+// be overriden by command line flags.
+func getOpts() {
+	cfgCli := &configData{}
+	err := viper.Unmarshal(cfgCli)
+	if err != nil {
+		msg := fmt.Sprintf("Cannot deserialize config file: %s", err)
+		slog.Error(msg)
+		os.Exit(1)
+	}
+
+	if cfgCli.RootPath != "" {
+		opts = append(opts, config.OptRootPath(cfgCli.RootPath))
+	}
+
+	if cfgCli.OutputArchiveCompression != "" {
+		opts = append(
+			opts,
+			config.OptArchiveCompression(cfgCli.OutputArchiveCompression),
+		)
+	}
+
+	if cfgCli.OutputCSVType != "" {
+		opts = append(
+			opts,
+			config.OptOutputCSVType(cfgCli.OutputCSVType),
+		)
+	}
+
+	if cfgCli.JobsNum != 0 {
+		opts = append(opts, config.OptJobsNum(cfgCli.JobsNum))
+	}
+}
+
+// touchConfigFile checks if config file exists, and if not, it gets created.
+func touchConfigFile(configPath string) error {
+	exists, err := gnsys.FileExists(configPath)
+	if exists || err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf("Creating config file '%s'", configPath)
+	slog.Info(msg)
+	createConfig(configPath)
+	return nil
+}
+
+// createConfig creates config file.
+func createConfig(path string) {
+	err := gnsys.MakeDir(filepath.Dir(path))
+	if err != nil {
+		msg := fmt.Sprintf("Cannot create dir %s: %s", path, err)
+		slog.Error(msg)
+		os.Exit(1)
+	}
+
+	err = os.WriteFile(path, []byte(configText), 0644)
+	if err != nil {
+		msg := fmt.Sprintf("Cannot write to file %s: %s", path, err)
+		slog.Error(msg)
+		os.Exit(1)
+	}
 }

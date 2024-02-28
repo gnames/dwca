@@ -1,0 +1,16 @@
+## RootPath is the root path for all temporary files.
+#
+#	RootPath ~/.cache/dwca_go
+
+## OutputArchiveCompression is the compression format to use when
+## creating the output archive. It can be "zip" or "tar.gz".
+#
+#	OutputArchiveCompression zip
+
+## OutputCSVType is the type of CSV files. Can be "csv" or "tsv"
+#
+# OutputCSVType tsv
+
+## JobsNum is the number of concurrent jobs to run.
+#
+#	JobsNum 5

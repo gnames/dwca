@@ -3,21 +3,19 @@ package dwca
 import (
 	"context"
 	"log/slog"
+	"path/filepath"
 
 	"golang.org/x/sync/errgroup"
 )
 
 func (a *arch) processExtensionsOutput() error {
 	for i := range a.meta.Extensions {
-		err := a.processExt(i)
-		if err != nil {
-			return err
-		}
+		a.processExt(i)
 	}
 	return nil
 }
 
-func (a *arch) processExt(idx int) error {
+func (a *arch) processExt(idx int) {
 	ext := a.meta.Extensions[idx]
 	slog.Info("Processing extension", "file", ext.Files.Location)
 	var maxIdx int
@@ -40,9 +38,12 @@ func (a *arch) processExt(idx int) error {
 
 	err := a.ExtensionStream(ctx, idx, chIn)
 	if err != nil {
-		return err
+		slog.Error(
+			"Error processing extension",
+			"file", ext.Files.Location,
+			"error", err,
+		)
 	}
-	return nil
 }
 
 func (a *arch) saveExtOutput(
@@ -53,13 +54,25 @@ func (a *arch) saveExtOutput(
 	ext := a.meta.Extensions[idx]
 	file := ext.Files.Location
 	fields := fieldNames(ext.Fields)
-	return a.dcFile.ExportCSVStream(ctx, file, fields, chIn)
+	delim := ext.FieldsTerminatedBy
+	return a.dcFile.ExportCSVStream(ctx, file, fields, delim, chIn)
 }
 
 func (a *arch) updateOutputMetaExt(idx int) {
 	ext := a.outputMeta.Extensions[idx]
-	ext.FieldsTerminatedBy = ","
-	ext.LinesTerminatedBy = "\n"
-	ext.FieldsEnclosedBy = "\""
+
+	file := ext.Files.Location
+	e := filepath.Ext(file)
+	location := file[:len(file)-len(e)] + ".txt"
+
+	delim := ","
+	if a.cfg.OutputCSVType == "tsv" {
+		delim = `\t`
+	}
+
+	ext.Files.Location = location
+	ext.FieldsTerminatedBy = delim
+	ext.LinesTerminatedBy = `\n`
+	ext.FieldsEnclosedBy = `"`
 	ext.IgnoreHeaderLines = "1"
 }

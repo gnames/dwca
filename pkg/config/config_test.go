@@ -13,7 +13,7 @@ func TestConfigDefault(t *testing.T) {
 	assert.Contains(conf.RootPath, "dwca_go")
 
 	opts := []config.Option{
-		config.OptPath("test"),
+		config.OptRootPath("test"),
 	}
 	conf = config.New(opts...)
 	assert.Equal("test", conf.RootPath)

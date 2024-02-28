@@ -36,6 +36,12 @@ var normalizeCmd = &cobra.Command{
 	Long: `There are some known ambiguities in DwCA files, that are
 	normalized by this command.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		flags := []flagFunc{
+			debugFlag, rootDirFlag, jobsNumFlag, archiveFlag, csvFlag,
+		}
+		for _, v := range flags {
+			v(cmd)
+		}
 		in, out := getInput(cmd, args)
 		arc, err := dwca.Factory(in, opts...)
 		if err != nil {
@@ -55,7 +61,13 @@ var normalizeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = arc.TarGzNormalizedDwCA(out)
+		if arc.Config().OutputArchiveCompression == "zip" {
+			out += ".zip"
+			err = arc.ZipNormalizedDwCA(out)
+		} else {
+			out += ".tar.gz"
+			err = arc.TarGzNormalizedDwCA(out)
+		}
 		if err != nil {
 			slog.Error("Cannot archive DwCA data", "error", err)
 			os.Exit(1)
@@ -76,14 +88,20 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// normalizeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	normalizeCmd.Flags().StringP("archive-format", "a", "",
+		"format of the output archive (tar or zip)",
+	)
+
+	normalizeCmd.Flags().StringP("csv-type", "c", "",
+		"type of CSV files in the output archive (csv or tsv)",
+	)
 }
 
 func getInput(cmd *cobra.Command, args []string) (in, out string) {
 	switch len(args) {
 	case 1:
 		path := args[0]
-		return path, path + ".norm.tar.gz"
+		return path, path + ".norm"
 	case 2:
 		return args[0], args[1]
 	default:
