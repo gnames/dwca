@@ -1,10 +1,12 @@
 package dwca
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"log/slog"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,12 +25,9 @@ func (a *arch) processCoreOutput() error {
 	// find the highest index in the core file
 	// we can remove fields after highest index
 	// and add new fields after that index
-	var maxIdx int
-	for _, v := range a.meta.Core.Fields {
-		if v.Idx > maxIdx {
-			maxIdx = v.Idx
-		}
-	}
+	maxIdx := slices.MaxFunc(a.meta.Core.Fields, func(a, b meta.Field) int {
+		return cmp.Compare(a.Idx, b.Idx)
+	}).Idx
 
 	// taxon is a helper object to handle DarwinCore fields that are relevant
 	// for name and hierarchy.
@@ -120,13 +119,13 @@ func (a *arch) coreWorker(
 
 func (a *arch) updateOutputCore(maxIdx int) {
 	terms := []string{
-		"ScientificNameString",
-		"CanonicalFormFull",
-		"CanonicalForm",
-		"CanonicalFormStem",
-		"BreadcrumbNames",
-		"BreadcrumbRanks",
-		"BreadcrumbIds",
+		"scientificNameString",
+		"canonicalFormFull",
+		"canonicalForm",
+		"canonicalFormStem",
+		"breadcrumbNames",
+		"breadcrumbRanks",
+		"breadcrumbIds",
 	}
 
 	var idx int
@@ -138,6 +137,7 @@ func (a *arch) updateOutputCore(maxIdx int) {
 			meta.Field{Term: term, Idx: idx, Index: strconv.Itoa(idx)},
 		)
 	}
+	fmt.Printf("FLDS: %#v\n", a.outputMeta.Core.Fields)
 	if _, ok := a.metaSimple.FieldsData["acceptednameusageid"]; !ok {
 		idx++
 		a.outputMeta.Core.Fields = append(
@@ -163,18 +163,13 @@ func (a *arch) updateOutputCore(maxIdx int) {
 }
 
 func (a *arch) saveCoreOutput(ctx context.Context, chOut <-chan []string) error {
-	file := a.metaSimple.Location
-	fields := fieldNames(a.outputMeta.Core.Fields)
+	file := a.outputMeta.Core.Files.Location
+
+	idx := a.outputMeta.Core.ID.Idx
+	fields := meta.Headers(idx, a.outputMeta.Core.Fields)
+
 	delim := a.outputMeta.Core.FieldsTerminatedBy
 	return a.dcFile.ExportCSVStream(ctx, file, fields, delim, chOut)
-}
-
-func fieldNames(fs []meta.Field) []string {
-	var res []string
-	for _, v := range fs {
-		res = append(res, filepath.Base(v.Term))
-	}
-	return res
 }
 
 func (a *arch) flatHierarchy() bool {

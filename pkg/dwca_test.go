@@ -8,17 +8,19 @@ import (
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/dwca/internal/ent/diagn"
 	dwca "github.com/gnames/dwca/pkg"
+	"github.com/gnames/dwca/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFactory(t *testing.T) {
 	assert := assert.New(t)
-	arc, err := dwca.Factory(filepath.Join("testdata", "data.zip"))
+	cfg := config.New()
+	arc, err := dwca.Factory(filepath.Join("testdata", "data.zip"), cfg)
 	assert.Nil(err)
 	assert.Implements((*dwca.Archive)(nil), arc)
 
 	badPath := filepath.Join("testdata", "dont_exist.zip")
-	arc, err = dwca.Factory(badPath)
+	arc, err = dwca.Factory(badPath, cfg)
 	assert.NotNil(err)
 	assert.Nil(arc)
 	_, ok := err.(*dcfile.ErrFileNotFound)
@@ -42,11 +44,12 @@ func TestCoreData(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		arc, err := dwca.Factory(path)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
 
-		err = arc.Load()
+		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
 
 		meta := arc.Meta()
@@ -72,11 +75,12 @@ func TestCoreStream(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		arc, err := dwca.Factory(path)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
 
-		err = arc.Load()
+		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
 
 		meta := arc.Meta()
@@ -84,7 +88,7 @@ func TestCoreStream(t *testing.T) {
 
 		ch := make(chan []string)
 		go func() {
-			err := arc.CoreStream(context.Background(), ch)
+			err = arc.CoreStream(context.Background(), ch)
 			assert.Nil(err)
 		}()
 
@@ -116,11 +120,12 @@ func TestExtensionData(t *testing.T) {
 
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		arc, err := dwca.Factory(path)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
 
-		err = arc.Load()
+		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
 
 		meta := arc.Meta()
@@ -150,11 +155,12 @@ func TestExtensionStream(t *testing.T) {
 	ctx := context.Background()
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		arc, err := dwca.Factory(path)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
 
-		err = arc.Load()
+		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
 
 		meta := arc.Meta()
@@ -193,11 +199,12 @@ func TestSynDiagnose(t *testing.T) {
 
 	for _, v := range tests {
 		path := filepath.Join("testdata", "diagn", "synonyms", v.file)
-		arc, err := dwca.Factory(path)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
 
-		err = arc.Load()
+		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
 
 		meta := arc.Meta()

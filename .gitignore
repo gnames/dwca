@@ -21,6 +21,7 @@ t.json
 # Dependency directories (e.g., vendor/ for Go modules, or GOPATH)
 /vendor/
 /bin/
+coverage.txt
 
 # Editor-specific files and directories
 .vscode/

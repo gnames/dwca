@@ -58,7 +58,12 @@ type CoreID struct {
 
 // Field holds the fields of the data.
 type Field struct {
+	// Index is the verbatim index of the field.
 	Index string `xml:"index,attr"`
-	Idx   int    `xml:"-"`
-	Term  string `xml:"term,attr"`
+
+	// Idx is the int version of Index.
+	Idx int `xml:"-"`
+
+	// Term is the URI of the term.
+	Term string `xml:"term,attr"`
 }

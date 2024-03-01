@@ -26,6 +26,7 @@ import (
 	"os"
 
 	dwca "github.com/gnames/dwca/pkg"
+	"github.com/gnames/dwca/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -43,19 +44,26 @@ var normalizeCmd = &cobra.Command{
 			v(cmd)
 		}
 		in, out := getInput(cmd, args)
-		arc, err := dwca.Factory(in, opts...)
+		cfg := config.New(opts...)
+		arc, err := dwca.Factory(in, cfg)
 		if err != nil {
 			slog.Error("Cannot initialize DwCA", "error", err)
 			os.Exit(1)
 		}
 
-		err = arc.Load()
+		slog.Info(
+			"Configuration",
+			"concurrent_jobs", cfg.JobsNum,
+			"output_csv_type", cfg.OutputCSVType,
+			"archive_type", cfg.OutputArchiveCompression)
+
+		err = arc.Load(cfg.ExtractPath)
 		if err != nil {
-			slog.Error("Cannot read DwCA", "error", err)
+			slog.Error("Cannot load DwCA", "error", err)
 			os.Exit(1)
 		}
 
-		err = arc.NormalizedDwCA()
+		err = arc.NormalizeDwCA()
 		if err != nil {
 			slog.Error("Cannot normalize DwCA", "error", err)
 			os.Exit(1)

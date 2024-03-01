@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.1] - 2024-03-07 Thu
+
+Add [#15]: fix headers in csv files.
+
 ## [v0.1.0] - 2024-02-29 Thu
 
 Add [#14]: configuration YAML file, first binary release.

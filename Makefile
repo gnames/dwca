@@ -70,7 +70,7 @@ release: buildrel ## Build and package binaries for a release
 	tar zcvf /tmp/$(PROJ_NAME)-$(VER)-mac.tar.gz $(PROJ_NAME); \
 	$(GOCLEAN); \
 	$(FLAGS_MAC_ARM) $(GORELEASE); \
-	tar zcvf /tmp/$(PROJ_NAME)-$(VER)-mac.tar.gz $(PROJ_NAME); \
+	tar zcvf /tmp/$(PROJ_NAME)-$(VER)-mac-arm.tar.gz $(PROJ_NAME); \
 	$(GOCLEAN); \
 	$(FLAGS_WIN) $(GORELEASE); \
 	zip -9 /tmp/$(PROJ_NAME)-$(VER)-win-64.zip $(PROJ_NAME).exe; \

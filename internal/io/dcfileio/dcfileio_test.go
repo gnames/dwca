@@ -44,7 +44,7 @@ func TestExtract(t *testing.T) {
 		assert.Nil(err)
 
 		// delete old archive dir
-		err = df.Init()
+		err = df.ResetTempDirs()
 		assert.Nil(err)
 
 		// extract new archive dir
@@ -91,7 +91,7 @@ func TestMetaDir(t *testing.T) {
 		assert.Nil(err)
 
 		// delte old archive dir
-		err = df.Init()
+		err = df.ResetTempDirs()
 		assert.Nil(err)
 
 		// extract new archive dir
@@ -99,7 +99,7 @@ func TestMetaDir(t *testing.T) {
 		assert.Nil(err)
 
 		// find archive dir
-		arcDir, err := df.ArchiveDir()
+		arcDir, err := df.ArchiveDir(cfg.ExtractPath)
 		if err == nil {
 			assert.True(strings.HasSuffix(arcDir, v.path), v.msg)
 			continue

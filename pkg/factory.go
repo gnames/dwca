@@ -11,21 +11,19 @@ import (
 // configuration, and a path to the DwCA file. The path is used to initialize
 // the DwCA object, and the options are used to configure the object.
 // This function is the only place where concrete IO objects are allowed.
-func Factory(fpath string, opts ...config.Option) (Archive, error) {
+func Factory(fpath string, cfg config.Config) (Archive, error) {
 	slog.Info("Creating empty DwCA object", "input", fpath)
-	cfg := config.New(opts...)
-	slog.Info(
-		"Configuration",
-		"concurrent_jobs", cfg.JobsNum,
-		"output_csv_type", cfg.OutputCSVType,
-		"archive_type", cfg.OutputArchiveCompression)
 	dcf, err := dcfileio.New(cfg, fpath)
 	if err != nil {
 		return nil, err
 	}
-	err = dcf.Init()
-	if err != nil {
-		return nil, err
+
+	// empty fpath means we initialize normalized internal object.
+	if fpath != "" {
+		err = dcf.ResetTempDirs()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	res := New(cfg, dcf)

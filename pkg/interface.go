@@ -20,7 +20,8 @@ type Archive interface {
 	EML() *eml.EML
 
 	// Load extracts the archive and loads data for EML and Meta.
-	Load() error
+	// Path determines internal location of the extracted archive.
+	Load(path string) error
 
 	// Close cleans up temporary files.
 	Close() error
@@ -48,10 +49,10 @@ type Archive interface {
 	// Index corresponds the index of the extension in the extension list.
 	ExtensionStream(ctx context.Context, index int, ch chan<- []string) error
 
-	// NormalizedDwCA creates a normalized version of Darwin Core Archive
+	// NormalizeDwCA creates a normalized version of Darwin Core Archive
 	// with all known ambiguities resolved. The output is written to a file
 	// with the provided fileName.
-	NormalizedDwCA() error
+	NormalizeDwCA() error
 
 	// ZipNormalizedDwCA compresses a normalized version of Darwin Core Archive
 	// to a ZIP file with the provided filePath.

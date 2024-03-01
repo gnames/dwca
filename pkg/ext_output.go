@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"path/filepath"
 
+	"github.com/gnames/dwca/pkg/ent/meta"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -51,9 +52,9 @@ func (a *arch) saveExtOutput(
 	idx int,
 	chIn <-chan []string,
 ) error {
-	ext := a.meta.Extensions[idx]
+	ext := a.outputMeta.Extensions[idx]
 	file := ext.Files.Location
-	fields := fieldNames(ext.Fields)
+	fields := meta.Headers(idx, ext.Fields)
 	delim := ext.FieldsTerminatedBy
 	return a.dcFile.ExportCSVStream(ctx, file, fields, delim, chIn)
 }

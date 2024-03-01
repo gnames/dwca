@@ -6,6 +6,7 @@ import (
 
 	"github.com/gnames/dwca/internal/ent/diagn"
 	dwca "github.com/gnames/dwca/pkg"
+	"github.com/gnames/dwca/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,17 +26,17 @@ func TestNormalizeDwCA(t *testing.T) {
 	for _, v := range tests {
 		v.path = append([]string{"testdata"}, v.path...)
 		path := filepath.Join(v.path...)
-		arc, err := dwca.Factory(path)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
 
-		err = arc.Load()
+		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
 
 		meta := arc.Meta()
 		assert.NotNil(meta)
-
-		err = arc.NormalizedDwCA()
+		err = arc.NormalizeDwCA()
 		assert.Nil(err)
 	}
 }
@@ -54,11 +55,12 @@ func TestCompress(t *testing.T) {
 	for _, v := range tests {
 		ari := append([]string{"testdata", "diagn", "hierarchy"}, v.in)
 		path := filepath.Join(ari...)
-		arc, err := dwca.Factory(path)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
-		err = arc.Load()
+		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
-		err = arc.NormalizedDwCA()
+		err = arc.NormalizeDwCA()
 		assert.Nil(err)
 		outPath := filepath.Join(arc.Config().DownloadPath, v.out)
 		if v.msg == "zip" {
@@ -67,6 +69,42 @@ func TestCompress(t *testing.T) {
 		} else {
 			err = arc.TarGzNormalizedDwCA(outPath)
 			assert.Nil(err)
+		}
+	}
+}
+
+func TestIndexNoField(t *testing.T) {
+	assert := assert.New(t)
+	tests := []struct {
+		msg, file string
+		fieldNum  int
+	}{
+		{"idx norm", "tree.tar.gz", 15},
+		{"idx empty", "tree_no_index_info.tar.gz", 15},
+		{"idx empty", "gbif-small.tar.gz", 30},
+	}
+	for _, v := range tests {
+		path := filepath.Join("testdata", "diagn", "hierarchy", v.file)
+		cfg := config.New()
+		arc, err := dwca.Factory(path, cfg)
+		assert.Nil(err, v.msg)
+
+		err = arc.Load(cfg.ExtractPath)
+		assert.Nil(err, v.msg)
+
+		err = arc.NormalizeDwCA()
+		assert.Nil(err, v.msg)
+
+		arc, err = dwca.Factory("", cfg)
+		assert.Nil(err, v.msg)
+
+		err = arc.Load(cfg.OutputPath)
+		assert.Nil(err, v.msg)
+		var ary [][]string
+		ary, err = arc.CoreSlice(0, 10)
+		assert.Nil(err, v.msg)
+		for _, fld := range ary {
+			assert.Equal(v.fieldNum, len(fld), v.msg)
 		}
 	}
 }

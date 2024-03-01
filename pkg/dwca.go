@@ -20,6 +20,10 @@ import (
 
 // arch implements Archive interface.
 type arch struct {
+	// root contains the path where DWCA uncompressed files and directories
+	// are located. For example it can be cfg.ExtractPath or cfg.OutputPath.
+	root string
+
 	// cfg is the configuration object of the archive.
 	cfg config.Config
 
@@ -84,13 +88,19 @@ func (a *arch) Config() config.Config {
 }
 
 // Load extracts the archive and loads data for EML and Meta.
-func (a *arch) Load() error {
+func (a *arch) Load(path string) error {
+	var err error
 	slog.Info("Loading data from input DwCA file")
-	err := a.dcFile.Extract()
-	if err != nil {
-		return err
+
+	a.root = path
+
+	if a.root == a.cfg.ExtractPath {
+		err = a.dcFile.Extract()
+		if err != nil {
+			return err
+		}
 	}
-	path, err := a.dcFile.ArchiveDir()
+	path, err = a.dcFile.ArchiveDir(path)
 	if err != nil {
 		return err
 	}
@@ -136,14 +146,14 @@ func (a *arch) EML() *eml.EML {
 // strings, each slice representing a row of the core file. If limit and
 // offset are provided, it returns the corresponding subset of the data.
 func (a *arch) CoreSlice(offset, limit int) ([][]string, error) {
-	return a.dcFile.CoreData(a.meta, offset, limit)
+	return a.dcFile.CoreData(a.root, a.meta, offset, limit)
 }
 
 // CoreStream takes a channel and populates the channel with slices of
 // strings, each slice representing a row of the core file. The channel
 // is closed when the data is exhausted.
 func (a *arch) CoreStream(ctx context.Context, chCore chan<- []string) error {
-	return a.dcFile.CoreStream(ctx, a.meta, chCore)
+	return a.dcFile.CoreStream(ctx, a.root, a.meta, chCore)
 }
 
 // ExtensionSlice takes an index, offset and limit and returns a slice of
@@ -152,7 +162,7 @@ func (a *arch) CoreStream(ctx context.Context, chCore chan<- []string) error {
 // If limit and offset are provided, it returns the corresponding subset
 // of the data.
 func (a *arch) ExtensionSlice(index, offset, limit int) ([][]string, error) {
-	return a.dcFile.ExtensionData(index, a.meta, offset, limit)
+	return a.dcFile.ExtensionData(index, a.root, a.meta, offset, limit)
 }
 
 // ExtensionStream takes an index and a channel and populates the channel
@@ -164,7 +174,7 @@ func (a *arch) ExtensionStream(
 	index int,
 	ch chan<- []string,
 ) error {
-	return a.dcFile.ExtensionStream(ctx, index, a.meta, ch)
+	return a.dcFile.ExtensionStream(ctx, index, a.root, a.meta, ch)
 }
 
 func (a *arch) getMeta(path string) error {
@@ -256,7 +266,7 @@ func (a *arch) coreSample() (
 	return coreRows, exts, nil
 }
 
-func (a *arch) NormalizedDwCA() error {
+func (a *arch) NormalizeDwCA() error {
 	slog.Info("Processing Core file")
 	err := a.processCoreOutput()
 	if err != nil {
@@ -285,7 +295,7 @@ func (a *arch) NormalizedDwCA() error {
 
 func (a *arch) ZipNormalizedDwCA(filePath string) error {
 	slog.Info("Creating zip archive", "output", filePath)
-	err := a.dcFile.ZipOutput(filePath)
+	err := a.dcFile.Zip(a.cfg.OutputPath, filePath)
 	if err != nil {
 		return err
 	}
@@ -295,7 +305,7 @@ func (a *arch) ZipNormalizedDwCA(filePath string) error {
 
 func (a *arch) TarGzNormalizedDwCA(filePath string) error {
 	slog.Info("Creating tar.gz archive", "output", filePath)
-	err := a.dcFile.TarGzOutput(filePath)
+	err := a.dcFile.TarGz(a.cfg.OutputPath, filePath)
 	if err != nil {
 		return err
 	}

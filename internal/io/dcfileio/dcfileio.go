@@ -36,7 +36,7 @@ type dcfileio struct {
 // New creates a new DCFile object.
 func New(cfg config.Config, path string) (dcfile.DCFile, error) {
 	exists, _ := gnsys.FileExists(path)
-	if !exists {
+	if !exists && path != "" {
 		return nil, &dcfile.ErrFileNotFound{Path: path}
 	}
 	res := &dcfileio{
@@ -47,7 +47,9 @@ func New(cfg config.Config, path string) (dcfile.DCFile, error) {
 	return res, nil
 }
 
-func (d *dcfileio) Init() error {
+// ResetTempDirs creates empty filesystem structure for the DwCA archive.
+func (d *dcfileio) ResetTempDirs() error {
+
 	err := d.resetDirs()
 	if err != nil {
 		return err
@@ -72,12 +74,9 @@ func (d *dcfileio) Extract() error {
 	}
 }
 
-func (d *dcfileio) ArchiveDir() (string, error) {
-	if d.arcPath != "" {
-		return d.arcPath, nil
-	}
+func (d *dcfileio) ArchiveDir(path string) (string, error) {
 	var dirs []string
-	err := filepath.Walk(d.cfg.ExtractPath,
+	err := filepath.Walk(path,
 		func(path string, info os.FileInfo, err error,
 		) error {
 			if err != nil {
@@ -109,6 +108,7 @@ func (d *dcfileio) ArchiveDir() (string, error) {
 }
 
 func (d *dcfileio) CoreData(
+	root string,
 	meta *meta.Meta,
 	offset, limit int,
 ) ([][]string, error) {
@@ -117,6 +117,7 @@ func (d *dcfileio) CoreData(
 	}
 
 	attr := fileAttrs{
+		root:         root,
 		path:         meta.Core.Files.Location,
 		colSep:       meta.Core.FieldsTerminatedBy,
 		ignoreHeader: meta.Core.IgnoreHeaderLines,
@@ -160,8 +161,14 @@ func (d *dcfileio) CoreData(
 	return res, nil
 }
 
-func (d *dcfileio) CoreStream(ctx context.Context, meta *meta.Meta, coreChan chan<- []string) error {
+func (d *dcfileio) CoreStream(
+	ctx context.Context,
+	root string,
+	meta *meta.Meta,
+	coreChan chan<- []string,
+) error {
 	attr := fileAttrs{
+		root:         root,
 		path:         meta.Core.Files.Location,
 		colSep:       meta.Core.FieldsTerminatedBy,
 		ignoreHeader: meta.Core.IgnoreHeaderLines,
@@ -201,7 +208,7 @@ func (d *dcfileio) CoreStream(ctx context.Context, meta *meta.Meta, coreChan cha
 			coreChan <- row
 		}
 	}
-	fmt.Print("\r")
+	fmt.Printf("\r")
 	slog.Info("Processed Core file", "lines", humanize.Comma(count))
 
 	close(coreChan)
@@ -209,7 +216,7 @@ func (d *dcfileio) CoreStream(ctx context.Context, meta *meta.Meta, coreChan cha
 }
 
 func (d *dcfileio) ExtensionData(
-	index int, meta *meta.Meta, offset, limit int,
+	index int, root string, meta *meta.Meta, offset, limit int,
 ) ([][]string, error) {
 	if meta == nil {
 		return nil, &dcfile.ErrExtensionRead{Err: errors.New("*meta.Meta is nil")}
@@ -220,6 +227,7 @@ func (d *dcfileio) ExtensionData(
 	ext := meta.Extensions[index]
 
 	attr := fileAttrs{
+		root:         root,
 		path:         ext.Files.Location,
 		colSep:       ext.FieldsTerminatedBy,
 		ignoreHeader: ext.IgnoreHeaderLines,
@@ -266,6 +274,7 @@ func (d *dcfileio) ExtensionData(
 func (d *dcfileio) ExtensionStream(
 	ctx context.Context,
 	index int,
+	root string,
 	meta *meta.Meta,
 	extChan chan<- []string,
 ) error {
@@ -278,6 +287,7 @@ func (d *dcfileio) ExtensionStream(
 	ext := meta.Extensions[index]
 
 	attr := fileAttrs{
+		root:         root,
 		path:         ext.Files.Location,
 		colSep:       ext.FieldsTerminatedBy,
 		ignoreHeader: ext.IgnoreHeaderLines,
@@ -360,8 +370,8 @@ func (d *dcfileio) SaveToFile(fileName string, bs []byte) error {
 	return os.WriteFile(path, bs, 0644)
 }
 
-func (d *dcfileio) ZipOutput(filePath string) error {
-	w, err := os.Create(filePath)
+func (d *dcfileio) Zip(inputDir, fileZip string) error {
+	w, err := os.Create(fileZip)
 	if err != nil {
 		return err
 	}
@@ -369,7 +379,7 @@ func (d *dcfileio) ZipOutput(filePath string) error {
 
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
-	filepath.WalkDir(d.cfg.OutputPath,
+	filepath.WalkDir(inputDir,
 		func(path string, e os.DirEntry, err error) error {
 			if err != nil {
 				return err
@@ -414,8 +424,8 @@ func (d *dcfileio) ZipOutput(filePath string) error {
 	return nil
 }
 
-func (dd *dcfileio) TarGzOutput(tarGzFilename string) error {
-	w, err := os.Create(tarGzFilename)
+func (d *dcfileio) TarGz(inputDir, fileTar string) error {
+	w, err := os.Create(fileTar)
 	if err != nil {
 		return err
 	}
@@ -427,22 +437,22 @@ func (dd *dcfileio) TarGzOutput(tarGzFilename string) error {
 	tarWriter := tar.NewWriter(gzWriter)
 	defer tarWriter.Close()
 
-	filepath.WalkDir(dd.cfg.OutputPath,
-		func(path string, d os.DirEntry, err error) error {
+	filepath.WalkDir(inputDir,
+		func(path string, de os.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
 
-			if d.IsDir() {
+			if de.IsDir() {
 				return nil
 			}
 
-			relPath, err := filepath.Rel(dd.cfg.OutputPath, path)
+			relPath, err := filepath.Rel(d.cfg.OutputPath, path)
 			if err != nil {
 				return err
 			}
 
-			fileInfo, err := d.Info()
+			fileInfo, err := de.Info()
 			if err != nil {
 				return err
 			}
@@ -481,6 +491,7 @@ func (d *dcfileio) Close() error {
 }
 
 type fileAttrs struct {
+	root         string
 	path         string
 	colSep       string
 	quote        string
@@ -490,9 +501,9 @@ type fileAttrs struct {
 func (d *dcfileio) openCSV(attr fileAttrs) (*gncsv.Reader, *os.File, error) {
 	path := attr.path
 	if path == "" {
-		return nil, nil, errors.New("core file location is empty")
+		return nil, nil, errors.New("file location is empty")
 	}
-	basePath, err := d.ArchiveDir()
+	basePath, err := d.ArchiveDir(attr.root)
 	if err != nil {
 		return nil, nil, err
 	}
