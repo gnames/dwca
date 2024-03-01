@@ -14,6 +14,11 @@ import (
 func Factory(fpath string, opts ...config.Option) (Archive, error) {
 	slog.Info("Creating empty DwCA object", "input", fpath)
 	cfg := config.New(opts...)
+	slog.Info(
+		"Configuration",
+		"concurrent_jobs", cfg.JobsNum,
+		"output_csv_type", cfg.OutputCSVType,
+		"archive_type", cfg.OutputArchiveCompression)
 	dcf, err := dcfileio.New(cfg, fpath)
 	if err != nil {
 		return nil, err
