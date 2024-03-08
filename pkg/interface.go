@@ -49,16 +49,16 @@ type Archive interface {
 	// Index corresponds the index of the extension in the extension list.
 	ExtensionStream(ctx context.Context, index int, ch chan<- []string) error
 
-	// NormalizeDwCA creates a normalized version of Darwin Core Archive
+	// Normalize creates a normalized version of Darwin Core Archive
 	// with all known ambiguities resolved. The output is written to a file
 	// with the provided fileName.
-	NormalizeDwCA() error
+	Normalize() error
 
-	// ZipNormalizedDwCA compresses a normalized version of Darwin Core Archive
+	// ZipNorgalized compresses a normalized version of Darwin Core Archive
 	// to a ZIP file with the provided filePath.
-	ZipNormalizedDwCA(filePath string) error
+	ZipNormalized(filePath string) error
 
-	// TarNormalizedDwCA compresses a normalized version of Darwin Core Archive
+	// TarGzNormalized compresses a normalized version of Darwin Core Archive
 	// to a TAR file with the provided filePath.
-	TarGzNormalizedDwCA(filePath string) error
+	TarGzNormalized(filePath string) error
 }

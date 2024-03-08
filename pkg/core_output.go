@@ -137,7 +137,6 @@ func (a *arch) updateOutputCore(maxIdx int) {
 			meta.Field{Term: term, Idx: idx, Index: strconv.Itoa(idx)},
 		)
 	}
-	fmt.Printf("FLDS: %#v\n", a.outputMeta.Core.Fields)
 	if _, ok := a.metaSimple.FieldsData["acceptednameusageid"]; !ok {
 		idx++
 		a.outputMeta.Core.Fields = append(

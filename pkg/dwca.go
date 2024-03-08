@@ -266,7 +266,7 @@ func (a *arch) coreSample() (
 	return coreRows, exts, nil
 }
 
-func (a *arch) NormalizeDwCA() error {
+func (a *arch) Normalize() error {
 	slog.Info("Processing Core file")
 	err := a.processCoreOutput()
 	if err != nil {
@@ -293,7 +293,7 @@ func (a *arch) NormalizeDwCA() error {
 	return nil
 }
 
-func (a *arch) ZipNormalizedDwCA(filePath string) error {
+func (a *arch) ZipNormalized(filePath string) error {
 	slog.Info("Creating zip archive", "output", filePath)
 	err := a.dcFile.Zip(a.cfg.OutputPath, filePath)
 	if err != nil {
@@ -303,7 +303,7 @@ func (a *arch) ZipNormalizedDwCA(filePath string) error {
 	return nil
 }
 
-func (a *arch) TarGzNormalizedDwCA(filePath string) error {
+func (a *arch) TarGzNormalized(filePath string) error {
 	slog.Info("Creating tar.gz archive", "output", filePath)
 	err := a.dcFile.TarGz(a.cfg.OutputPath, filePath)
 	if err != nil {

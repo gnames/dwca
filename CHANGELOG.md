@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.0] - 2024-03-08 Fri
+
+Add: improve interfaces.
+Fix: remove debug info.
+
 ## [v0.1.1] - 2024-03-07 Thu
 
 Add [#15]: fix headers in csv files.
@@ -35,9 +40,22 @@ Add: initial commit
 
 This document follows [changelog guidelines]
 
+[v0.2.0]: https://github.com/gnames/dwca/compare/v0.1.1...v0.2.0
+[v0.1.1]: https://github.com/gnames/dwca/compare/v0.1.0...v0.1.1
+[v0.1.0]: https://github.com/gnames/dwca/compare/v0.0.1...v0.1.0
 [v0.0.1]: https://github.com/gnames/dwca/compare/v0.0.0...v0.0.1
 [v0.0.0]: https://github.com/gnames/dwca/tree/v0.0.0
 
+[#20]: https://github.com/gnames/dwca/issues/20
+[#19]: https://github.com/gnames/dwca/issues/19
+[#18]: https://github.com/gnames/dwca/issues/18
+[#17]: https://github.com/gnames/dwca/issues/17
+[#16]: https://github.com/gnames/dwca/issues/16
+[#15]: https://github.com/gnames/dwca/issues/15
+[#14]: https://github.com/gnames/dwca/issues/14
+[#13]: https://github.com/gnames/dwca/issues/13
+[#12]: https://github.com/gnames/dwca/issues/12
+[#11]: https://github.com/gnames/dwca/issues/11
 [#10]: https://github.com/gnames/dwca/issues/10
 [#9]: https://github.com/gnames/dwca/issues/9
 [#8]: https://github.com/gnames/dwca/issues/8

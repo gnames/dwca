@@ -63,7 +63,7 @@ var normalizeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = arc.NormalizeDwCA()
+		err = arc.Normalize()
 		if err != nil {
 			slog.Error("Cannot normalize DwCA", "error", err)
 			os.Exit(1)
@@ -71,10 +71,10 @@ var normalizeCmd = &cobra.Command{
 
 		if arc.Config().OutputArchiveCompression == "zip" {
 			out += ".zip"
-			err = arc.ZipNormalizedDwCA(out)
+			err = arc.ZipNormalized(out)
 		} else {
 			out += ".tar.gz"
-			err = arc.TarGzNormalizedDwCA(out)
+			err = arc.TarGzNormalized(out)
 		}
 		if err != nil {
 			slog.Error("Cannot archive DwCA data", "error", err)

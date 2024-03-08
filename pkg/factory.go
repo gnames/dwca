@@ -29,3 +29,8 @@ func Factory(fpath string, cfg config.Config) (Archive, error) {
 	res := New(cfg, dcf)
 	return res, nil
 }
+
+// FactoryOutput creates a new DwCA object from normalized output DwCA.
+func FactoryOutput(cfg config.Config) (Archive, error) {
+	return Factory("", cfg)
+}

@@ -36,7 +36,7 @@ func TestNormalizeDwCA(t *testing.T) {
 
 		meta := arc.Meta()
 		assert.NotNil(meta)
-		err = arc.NormalizeDwCA()
+		err = arc.Normalize()
 		assert.Nil(err)
 	}
 }
@@ -60,14 +60,14 @@ func TestCompress(t *testing.T) {
 		assert.Nil(err)
 		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err)
-		err = arc.NormalizeDwCA()
+		err = arc.Normalize()
 		assert.Nil(err)
 		outPath := filepath.Join(arc.Config().DownloadPath, v.out)
 		if v.msg == "zip" {
-			err = arc.ZipNormalizedDwCA(outPath)
+			err = arc.ZipNormalized(outPath)
 			assert.Nil(err)
 		} else {
-			err = arc.TarGzNormalizedDwCA(outPath)
+			err = arc.TarGzNormalized(outPath)
 			assert.Nil(err)
 		}
 	}
@@ -92,7 +92,7 @@ func TestIndexNoField(t *testing.T) {
 		err = arc.Load(cfg.ExtractPath)
 		assert.Nil(err, v.msg)
 
-		err = arc.NormalizeDwCA()
+		err = arc.Normalize()
 		assert.Nil(err, v.msg)
 
 		arc, err = dwca.Factory("", cfg)
