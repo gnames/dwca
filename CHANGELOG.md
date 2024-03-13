@@ -44,12 +44,23 @@ Add: initial commit
 
 This document follows [changelog guidelines]
 
+[v0.2.1]: https://github.com/gnames/dwca/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/gnames/dwca/compare/v0.1.1...v0.2.0
 [v0.1.1]: https://github.com/gnames/dwca/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/gnames/dwca/compare/v0.0.1...v0.1.0
 [v0.0.1]: https://github.com/gnames/dwca/compare/v0.0.0...v0.0.1
 [v0.0.0]: https://github.com/gnames/dwca/tree/v0.0.0
 
+[#30]: https://github.com/gnames/dwca/issues/30
+[#29]: https://github.com/gnames/dwca/issues/29
+[#28]: https://github.com/gnames/dwca/issues/28
+[#27]: https://github.com/gnames/dwca/issues/27
+[#26]: https://github.com/gnames/dwca/issues/26
+[#25]: https://github.com/gnames/dwca/issues/25
+[#24]: https://github.com/gnames/dwca/issues/24
+[#23]: https://github.com/gnames/dwca/issues/23
+[#22]: https://github.com/gnames/dwca/issues/22
+[#21]: https://github.com/gnames/dwca/issues/21
 [#20]: https://github.com/gnames/dwca/issues/20
 [#19]: https://github.com/gnames/dwca/issues/19
 [#18]: https://github.com/gnames/dwca/issues/18
