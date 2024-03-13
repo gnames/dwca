@@ -120,6 +120,7 @@ func (d *dcfileio) CoreData(
 		root:         root,
 		path:         meta.Core.Files.Location,
 		colSep:       meta.Core.FieldsTerminatedBy,
+		quote:        meta.Core.FieldsEnclosedBy,
 		ignoreHeader: meta.Core.IgnoreHeaderLines,
 	}
 
@@ -196,15 +197,16 @@ func (d *dcfileio) CoreStream(
 			return &dcfile.ErrCoreRead{Err: err}
 		}
 
+		count++
+		if count%100_000 == 0 {
+			fmt.Printf("\r%s", strings.Repeat(" ", 35))
+			fmt.Printf("\rProcessed %s lines of Core", humanize.Comma(count))
+		}
+
 		select {
 		case <-ctx.Done():
 			return &dcfile.ErrContext{Err: ctx.Err()}
 		default:
-			count++
-			if count%100_000 == 0 {
-				fmt.Printf("\r%s", strings.Repeat(" ", 35))
-				fmt.Printf("\rProcessed %s lines of Core", humanize.Comma(count))
-			}
 			coreChan <- row
 		}
 	}
@@ -328,7 +330,7 @@ func (d *dcfileio) ExtensionStream(
 func (d *dcfileio) ExportCSVStream(
 	ctx context.Context,
 	file string,
-	fields []string,
+	headers []string,
 	delim string,
 	outChan <-chan []string,
 ) error {
@@ -345,20 +347,21 @@ func (d *dcfileio) ExportCSVStream(
 		w.Comma = '\t'
 	}
 
-	err = w.Write(fields)
+	err = w.Write(headers)
 	if err != nil {
 		return err
 	}
-
 	for row := range outChan {
+		err = w.Write(row)
+		if err != nil {
+			for _ = range outChan {
+			}
+			return err
+		}
 		select {
 		case <-ctx.Done():
 			return &dcfile.ErrContext{Err: ctx.Err()}
 		default:
-			err = w.Write(row)
-			if err != nil {
-				return err
-			}
 		}
 	}
 	w.Flush()
@@ -512,11 +515,9 @@ func (d *dcfileio) openCSV(attr fileAttrs) (*gncsv.Reader, *os.File, error) {
 	quote := '"'
 	if attr.colSep == "\\t" {
 		colSep = '\t'
-
-	}
-
-	if attr.quote == "" {
-		quote = rune(7) // bell character
+		if attr.quote == "" {
+			quote = rune(7) // bell character
+		}
 	}
 
 	path = filepath.Join(basePath, path)
@@ -531,11 +532,6 @@ func (d *dcfileio) openCSV(attr fileAttrs) (*gncsv.Reader, *os.File, error) {
 	r.Quote = quote
 	// allow variable number of fields
 	r.FieldsPerRecord = -1
-
-	// if r.Comma == '\t' {
-	// 	// lax quotes for tab-separated files
-	// 	r.LazyQuotes = true
-	// }
 
 	return r, f, nil
 }

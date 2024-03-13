@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.1] - 2024-03-13 Wed
+
+Fix [#17]: field separator for CSV. 
+
 ## [v0.2.0] - 2024-03-08 Fri
 
 Add: improve interfaces.

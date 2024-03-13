@@ -62,7 +62,7 @@ type DCFile interface {
 	ExportCSVStream(
 		ctx context.Context,
 		file string,
-		fields []string,
+		headers []string,
 		delim string,
 		outChan <-chan []string) error
 

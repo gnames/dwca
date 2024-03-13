@@ -104,6 +104,8 @@ func (a *arch) coreWorker(
 	for v := range chIn {
 		row, err := a.processCoreRow(p, v, maxIdx)
 		if err != nil {
+			for _ = range chIn {
+			}
 			return err
 		}
 
@@ -165,10 +167,10 @@ func (a *arch) saveCoreOutput(ctx context.Context, chOut <-chan []string) error 
 	file := a.outputMeta.Core.Files.Location
 
 	idx := a.outputMeta.Core.ID.Idx
-	fields := meta.Headers(idx, a.outputMeta.Core.Fields)
+	headers := meta.Headers(idx, a.outputMeta.Core.Fields)
 
 	delim := a.outputMeta.Core.FieldsTerminatedBy
-	return a.dcFile.ExportCSVStream(ctx, file, fields, delim, chOut)
+	return a.dcFile.ExportCSVStream(ctx, file, headers, delim, chOut)
 }
 
 func (a *arch) flatHierarchy() bool {

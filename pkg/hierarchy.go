@@ -83,6 +83,8 @@ func (a *arch) hierarchyWorker(
 	for v := range chIn {
 		row, err := a.processHierarchyRow(p, v)
 		if err != nil {
+			for _ = range chIn {
+			}
 			return err
 		}
 
