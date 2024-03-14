@@ -32,7 +32,7 @@ type DCFile interface {
 		root string,
 		meta *meta.Meta,
 		coreChan chan<- []string,
-	) error
+	) (int, error)
 
 	// ExtensionData returns the content of the extension file as a slice of
 	// slices of strings. Each slice of strings represents a row in the extension
@@ -53,7 +53,7 @@ type DCFile interface {
 		index int, root string,
 		meta *meta.Meta,
 		extChan chan<- []string,
-	) error
+	) (int, error)
 
 	// ExportCSVStream saves the content of a stream to a file. The file is a
 	// comma-separated file with the first row being the header. The header is

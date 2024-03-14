@@ -39,7 +39,7 @@ func (a *arch) processExt(idx int) {
 		return a.saveExtOutput(ctx, idx, chIn)
 	})
 
-	err := a.ExtensionStream(ctx, idx, chIn)
+	_, err := a.ExtensionStream(ctx, idx, chIn)
 	if err != nil {
 		slog.Error(
 			"Error processing extension",

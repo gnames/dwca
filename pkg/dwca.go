@@ -152,7 +152,10 @@ func (a *arch) CoreSlice(offset, limit int) ([][]string, error) {
 // CoreStream takes a channel and populates the channel with slices of
 // strings, each slice representing a row of the core file. The channel
 // is closed when the data is exhausted.
-func (a *arch) CoreStream(ctx context.Context, chCore chan<- []string) error {
+func (a *arch) CoreStream(
+	ctx context.Context,
+	chCore chan<- []string,
+) (int, error) {
 	return a.dcFile.CoreStream(ctx, a.root, a.meta, chCore)
 }
 
@@ -173,7 +176,7 @@ func (a *arch) ExtensionStream(
 	ctx context.Context,
 	index int,
 	ch chan<- []string,
-) error {
+) (int, error) {
 	return a.dcFile.ExtensionStream(ctx, index, a.root, a.meta, ch)
 }
 

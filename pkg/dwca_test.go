@@ -88,7 +88,7 @@ func TestCoreStream(t *testing.T) {
 
 		ch := make(chan []string)
 		go func() {
-			err = arc.CoreStream(context.Background(), ch)
+			_, err = arc.CoreStream(context.Background(), ch)
 			assert.Nil(err)
 		}()
 
@@ -168,7 +168,7 @@ func TestExtensionStream(t *testing.T) {
 
 		ch := make(chan []string)
 		go func() {
-			err = arc.ExtensionStream(ctx, v.index, ch)
+			_, err = arc.ExtensionStream(ctx, v.index, ch)
 			assert.Nil(err)
 		}()
 

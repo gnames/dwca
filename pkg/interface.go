@@ -34,7 +34,7 @@ type Archive interface {
 	// CoreStream takes a channel and populates the channel with slices of
 	// strings, each slice representing a row of the core file. The channel
 	// is closed when the data is exhausted.
-	CoreStream(context.Context, chan<- []string) error
+	CoreStream(context.Context, chan<- []string) (int, error)
 
 	// ExtensionSlice takes an index, offset and limit and returns a slice of
 	// slices of strings, each slice representing a row of the extension file.
@@ -47,7 +47,10 @@ type Archive interface {
 	// with slices of strings, each slice representing a row of the extension
 	// file. The channel is closed when the data is exhausted.
 	// Index corresponds the index of the extension in the extension list.
-	ExtensionStream(ctx context.Context, index int, ch chan<- []string) error
+	ExtensionStream(
+		ctx context.Context,
+		index int, ch chan<- []string,
+	) (int, error)
 
 	// Normalize creates a normalized version of Darwin Core Archive
 	// with all known ambiguities resolved. The output is written to a file

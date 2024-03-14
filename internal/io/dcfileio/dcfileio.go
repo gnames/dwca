@@ -167,7 +167,7 @@ func (d *dcfileio) CoreStream(
 	root string,
 	meta *meta.Meta,
 	coreChan chan<- []string,
-) error {
+) (int, error) {
 	attr := fileAttrs{
 		root:         root,
 		path:         meta.Core.Files.Location,
@@ -177,7 +177,7 @@ func (d *dcfileio) CoreStream(
 
 	r, f, err := d.openCSV(attr)
 	if err != nil {
-		return &dcfile.ErrCoreRead{Err: err}
+		return 0, &dcfile.ErrCoreRead{Err: err}
 	}
 	defer f.Close()
 
@@ -194,7 +194,7 @@ func (d *dcfileio) CoreStream(
 			break
 		}
 		if err != nil {
-			return &dcfile.ErrCoreRead{Err: err}
+			return 0, &dcfile.ErrCoreRead{Err: err}
 		}
 
 		count++
@@ -205,7 +205,7 @@ func (d *dcfileio) CoreStream(
 
 		select {
 		case <-ctx.Done():
-			return &dcfile.ErrContext{Err: ctx.Err()}
+			return 0, &dcfile.ErrContext{Err: ctx.Err()}
 		default:
 			coreChan <- row
 		}
@@ -214,7 +214,7 @@ func (d *dcfileio) CoreStream(
 	slog.Info("Processed core", "lines", humanize.Comma(count))
 
 	close(coreChan)
-	return nil
+	return int(count), nil
 }
 
 func (d *dcfileio) ExtensionData(
@@ -279,12 +279,12 @@ func (d *dcfileio) ExtensionStream(
 	root string,
 	meta *meta.Meta,
 	extChan chan<- []string,
-) error {
+) (int, error) {
 	if meta == nil {
-		return &dcfile.ErrExtensionRead{Err: errors.New("*meta.Meta is nil")}
+		return 0, &dcfile.ErrExtensionRead{Err: errors.New("*meta.Meta is nil")}
 	}
 	if len(meta.Extensions) <= index {
-		return &dcfile.ErrExtensionRead{Err: errors.New("index out of range")}
+		return 0, &dcfile.ErrExtensionRead{Err: errors.New("index out of range")}
 	}
 	ext := meta.Extensions[index]
 	extType := ext.RowType
@@ -299,7 +299,7 @@ func (d *dcfileio) ExtensionStream(
 
 	r, f, err := d.openCSV(attr)
 	if err != nil {
-		return &dcfile.ErrExtensionRead{Err: err}
+		return 0, &dcfile.ErrExtensionRead{Err: err}
 	}
 	defer f.Close()
 	// ignore headers if they are given
@@ -315,7 +315,7 @@ func (d *dcfileio) ExtensionStream(
 		}
 
 		if err != nil {
-			return &dcfile.ErrExtensionRead{Err: err}
+			return 0, &dcfile.ErrExtensionRead{Err: err}
 		}
 
 		count++
@@ -326,7 +326,7 @@ func (d *dcfileio) ExtensionStream(
 
 		select {
 		case <-ctx.Done():
-			return &dcfile.ErrContext{Err: ctx.Err()}
+			return 0, &dcfile.ErrContext{Err: ctx.Err()}
 		default:
 			extChan <- row
 		}
@@ -338,7 +338,7 @@ func (d *dcfileio) ExtensionStream(
 		"lines", humanize.Comma(count), "ext", extType,
 	)
 	close(extChan)
-	return nil
+	return int(count), nil
 }
 
 func (d *dcfileio) ExportCSVStream(

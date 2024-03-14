@@ -74,7 +74,7 @@ func (a *arch) processCoreOutput() error {
 		return a.saveCoreOutput(ctx, chOut)
 	})
 
-	err := a.CoreStream(ctx, chIn)
+	_, err := a.CoreStream(ctx, chIn)
 	if err != nil {
 		return err
 	}

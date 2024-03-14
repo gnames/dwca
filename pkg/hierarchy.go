@@ -59,7 +59,7 @@ func (a *arch) buildHierarchy() error {
 		close(chOut)
 	}()
 
-	err := a.CoreStream(ctx, chIn)
+	_, err := a.CoreStream(ctx, chIn)
 	if err != nil {
 		return err
 	}
