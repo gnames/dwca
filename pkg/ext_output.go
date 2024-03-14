@@ -18,7 +18,9 @@ func (a *arch) processExtensionsOutput() error {
 
 func (a *arch) processExt(idx int) {
 	ext := a.meta.Extensions[idx]
-	slog.Info("Processing extension", "file", ext.Files.Location)
+	extType := ext.RowType
+	extType = filepath.Base(extType)
+	slog.Info("Processing extension", "ext", extType)
 	var maxIdx int
 	for _, v := range ext.Fields {
 		if v.Idx > maxIdx {

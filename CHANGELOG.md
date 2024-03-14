@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.3] - 2024-03-14 Thu
+
+Add: log for extensions.
+
 ## [v0.2.2] - 2024-03-14 Thu
 
 Fix: allow absense of taxonomic status.
@@ -48,6 +52,7 @@ Add: initial commit
 
 This document follows [changelog guidelines]
 
+[v0.2.3]: https://github.com/gnames/dwca/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/gnames/dwca/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/gnames/dwca/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/gnames/dwca/compare/v0.1.1...v0.2.0

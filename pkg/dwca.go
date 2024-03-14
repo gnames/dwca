@@ -267,13 +267,13 @@ func (a *arch) coreSample() (
 }
 
 func (a *arch) Normalize() error {
-	slog.Info("Processing Core file")
+	slog.Info("Processing Core")
 	err := a.processCoreOutput()
 	if err != nil {
 		return err
 	}
 
-	slog.Info("Processing Extensions files")
+	slog.Info("Processing Extensions")
 	err = a.processExtensionsOutput()
 	if err != nil {
 		return err

@@ -55,7 +55,6 @@ func (a *arch) processCoreOutput() error {
 	var wg sync.WaitGroup
 
 	// start workers
-	slog.Info("Processing Core rows", "file", a.metaSimple.Location)
 	for i := 0; i < a.cfg.JobsNum; i++ {
 		wg.Add(1)
 		g.Go(func() error {

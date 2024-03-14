@@ -211,7 +211,7 @@ func (d *dcfileio) CoreStream(
 		}
 	}
 	fmt.Printf("\r")
-	slog.Info("Processed Core file", "lines", humanize.Comma(count))
+	slog.Info("Processed core", "lines", humanize.Comma(count))
 
 	close(coreChan)
 	return nil
@@ -287,6 +287,8 @@ func (d *dcfileio) ExtensionStream(
 		return &dcfile.ErrExtensionRead{Err: errors.New("index out of range")}
 	}
 	ext := meta.Extensions[index]
+	extType := ext.RowType
+	extType = filepath.Base(extType)
 
 	attr := fileAttrs{
 		root:         root,
@@ -305,6 +307,7 @@ func (d *dcfileio) ExtensionStream(
 		r.Read()
 	}
 
+	var count int64
 	for {
 		row, err := r.Read()
 		if err == io.EOF {
@@ -315,6 +318,12 @@ func (d *dcfileio) ExtensionStream(
 			return &dcfile.ErrExtensionRead{Err: err}
 		}
 
+		count++
+		if count%100_000 == 0 {
+			fmt.Printf("\r%s", strings.Repeat(" ", 50))
+			fmt.Printf("\rProcessed %s lines of %s", humanize.Comma(count), extType)
+		}
+
 		select {
 		case <-ctx.Done():
 			return &dcfile.ErrContext{Err: ctx.Err()}
@@ -323,6 +332,11 @@ func (d *dcfileio) ExtensionStream(
 		}
 	}
 
+	fmt.Printf("\r")
+	slog.Info(
+		"Processed extension",
+		"lines", humanize.Comma(count), "ext", extType,
+	)
 	close(extChan)
 	return nil
 }
