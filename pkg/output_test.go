@@ -108,3 +108,27 @@ func TestIndexNoField(t *testing.T) {
 		}
 	}
 }
+
+func TestAosBirds(t *testing.T) {
+	assert := assert.New(t)
+	path := filepath.Join("testdata", "aos-birds.tar.gz")
+	cfg := config.New()
+	arc, err := dwca.Factory(path, cfg)
+	assert.Nil(err)
+
+	err = arc.Load(cfg.ExtractPath)
+	assert.Nil(err)
+
+	err = arc.Normalize()
+	assert.Nil(err)
+
+	arc, err = dwca.FactoryOutput(cfg)
+	assert.Nil(err)
+
+	err = arc.Load(cfg.OutputPath)
+	assert.Nil(err)
+	var ary [][]string
+	ary, err = arc.CoreSlice(0, 10)
+	assert.Nil(err)
+	assert.Equal(10, len(ary))
+}

@@ -268,6 +268,11 @@ func (a *arch) isSynonym(row []string) bool {
 	syn := []string{"synonym", "homonym", "misapplied", "ambiguous"}
 	synPart := []string{"synonym", "miss", "un"}
 	tsIdx := a.taxon.taxonomicStatus
+
+	if tsIdx == -1 {
+		return false
+	}
+
 	st := strings.TrimSpace(row[tsIdx])
 	for i := range syn {
 		if st == syn[i] {
