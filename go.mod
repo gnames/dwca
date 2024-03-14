@@ -1,6 +1,6 @@
 module github.com/gnames/dwca
 
-go 1.22.0
+go 1.22.1
 
 require (
 	github.com/dustin/go-humanize v1.0.1
