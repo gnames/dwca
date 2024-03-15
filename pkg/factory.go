@@ -2,9 +2,11 @@ package dwca
 
 import (
 	"log/slog"
+	"strings"
 
 	"github.com/gnames/dwca/internal/io/dcfileio"
 	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/gnsys"
 )
 
 // Factory creates a new DwCA object. It takes a list of options for the
@@ -24,6 +26,14 @@ func Factory(fpath string, cfg config.Config) (Archive, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if strings.HasPrefix(fpath, "http") {
+		fpath, err = gnsys.Download(fpath, cfg.DownloadPath, true)
+		if err != nil {
+			return nil, err
+		}
+		dcf.SetFilePath(fpath)
 	}
 
 	res := New(cfg, dcf)

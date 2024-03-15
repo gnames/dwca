@@ -13,6 +13,9 @@ type DCFile interface {
 	//  ResetTempDirs cleans up or deletes temporary directories.
 	ResetTempDirs() error
 
+	//	SetFilePath sets the path to the DwCA file.
+	SetFilePath(string)
+
 	//  Extract extracts the content of the DwCA file to a temporary directory.
 	Extract() error
 

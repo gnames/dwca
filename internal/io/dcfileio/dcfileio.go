@@ -36,7 +36,7 @@ type dcfileio struct {
 // New creates a new DCFile object.
 func New(cfg config.Config, path string) (dcfile.DCFile, error) {
 	exists, _ := gnsys.FileExists(path)
-	if !exists && path != "" {
+	if !exists && path != "" && !strings.HasPrefix(path, "http") {
 		return nil, &dcfile.ErrFileNotFound{Path: path}
 	}
 	res := &dcfileio{
@@ -49,12 +49,16 @@ func New(cfg config.Config, path string) (dcfile.DCFile, error) {
 
 // ResetTempDirs creates empty filesystem structure for the DwCA archive.
 func (d *dcfileio) ResetTempDirs() error {
-
 	err := d.resetDirs()
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (d *dcfileio) SetFilePath(path string) {
+	d.filePath = path
+	d.fileType = dcfile.NewFileType(path)
 }
 
 func (d *dcfileio) Extract() error {

@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.5] - 2024-03-15 Fri
+
+Add [#18]: add download from URL.
+
 ## [v0.2.4] - 2024-03-14 Thu
 
 Add: stream methods return number of records.
@@ -56,6 +60,7 @@ Add: initial commit
 
 This document follows [changelog guidelines]
 
+[v0.2.5]: https://github.com/gnames/dwca/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/gnames/dwca/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/gnames/dwca/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/gnames/dwca/compare/v0.2.1...v0.2.2

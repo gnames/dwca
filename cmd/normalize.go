@@ -37,6 +37,7 @@ var normalizeCmd = &cobra.Command{
 	Long: `There are some known ambiguities in DwCA files, that are
 	normalized by this command.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		var err error
 		flags := []flagFunc{
 			debugFlag, rootDirFlag, jobsNumFlag, archiveFlag, csvFlag,
 		}
@@ -44,6 +45,7 @@ var normalizeCmd = &cobra.Command{
 			v(cmd)
 		}
 		in, out := getInput(cmd, args)
+
 		cfg := config.New(opts...)
 		arc, err := dwca.Factory(in, cfg)
 		if err != nil {
