@@ -95,17 +95,23 @@ func (a *arch) coreWorker(
 	chOut chan<- []string,
 	maxIdx int,
 ) error {
+	var err error
+	var row []string
 	p := <-a.gnpPool
 	defer func() {
 		a.gnpPool <- p
 	}()
 
 	for v := range chIn {
-		row, err := a.processCoreRow(p, v, maxIdx)
-		if err != nil {
-			for _ = range chIn {
+		if a.isNormalized() {
+			row = v
+		} else {
+			row, err = a.processCoreRow(p, v, maxIdx)
+			if err != nil {
+				for range chIn {
+				}
+				return err
 			}
-			return err
 		}
 
 		select {
@@ -118,7 +124,18 @@ func (a *arch) coreWorker(
 	return nil
 }
 
+func (a *arch) isNormalized() bool {
+	if _, ok := a.metaSimple.FieldsData["scientificnamestring"]; ok {
+		return true
+	}
+	return false
+}
+
 func (a *arch) updateOutputCore(maxIdx int) {
+	if a.isNormalized() {
+		return
+	}
+
 	terms := []string{
 		"scientificNameString",
 		"canonicalFormFull",
