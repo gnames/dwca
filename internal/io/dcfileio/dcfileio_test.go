@@ -57,9 +57,6 @@ func TestExtract(t *testing.T) {
 		}
 
 		_, ok := err.(*dcfile.ErrExtract)
-		if v.msg == "unknown" {
-			_, ok = err.(*dcfile.ErrUnknownArchiveType)
-		}
 		assert.True(ok, v.msg)
 		err = df.Close()
 		assert.Nil(err)

@@ -1,6 +1,9 @@
 package dcfile
 
-import "strings"
+import (
+	"log/slog"
+	"strings"
+)
 
 type FileType int
 
@@ -39,6 +42,7 @@ func NewFileType(file string) FileType {
 	case strings.HasSuffix(file, ".tar.bz2"):
 		return TARBZ2
 	default:
-		return Unknown
+		slog.Warn("Unknown file type, trying ZIP", "file", file)
+		return ZIP
 	}
 }

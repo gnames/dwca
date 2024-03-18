@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.6] - 2024-03-18 Mon
+
+Add: try ZIP file type for unknown types.
+Add: no normalization for already normalized.
+
 ## [v0.2.5] - 2024-03-15 Fri
 
 Add [#18]: add download from URL.
