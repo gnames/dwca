@@ -150,6 +150,7 @@ func (a *arch) updateOutputCore(maxIdx int) {
 	for i, v := range terms {
 		idx = maxIdx + i + 1
 		term := "https://terms.speciesfilegroup.org/" + v
+		a.outputMeta.EMLFile = "eml.xml"
 		a.outputMeta.Core.Fields = append(
 			a.outputMeta.Core.Fields,
 			meta.Field{Term: term, Idx: idx, Index: strconv.Itoa(idx)},

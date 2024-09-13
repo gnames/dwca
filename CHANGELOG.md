@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.7] - 2024-09-13 Fri
+
+Fix [#20]: metadata and filename for eml.xml now match in output DwCA.
+
 ## [v0.2.6] - 2024-03-18 Mon
 
 Add: try ZIP file type for unknown types.
@@ -28,7 +32,7 @@ Fix: allow absense of taxonomic status.
 
 ## [v0.2.1] - 2024-03-13 Wed
 
-Fix [#17]: field separator for CSV. 
+Fix [#17]: field separator for CSV.
 
 ## [v0.2.0] - 2024-03-08 Fri
 
@@ -65,6 +69,8 @@ Add: initial commit
 
 This document follows [changelog guidelines]
 
+[v0.2.7]: https://github.com/gnames/dwca/compare/v0.2.6...v0.2.7
+[v0.2.6]: https://github.com/gnames/dwca/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/gnames/dwca/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/gnames/dwca/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/gnames/dwca/compare/v0.2.2...v0.2.3
@@ -75,7 +81,6 @@ This document follows [changelog guidelines]
 [v0.1.0]: https://github.com/gnames/dwca/compare/v0.0.1...v0.1.0
 [v0.0.1]: https://github.com/gnames/dwca/compare/v0.0.0...v0.0.1
 [v0.0.0]: https://github.com/gnames/dwca/tree/v0.0.0
-
 [#30]: https://github.com/gnames/dwca/issues/30
 [#29]: https://github.com/gnames/dwca/issues/29
 [#28]: https://github.com/gnames/dwca/issues/28
@@ -106,5 +111,4 @@ This document follows [changelog guidelines]
 [#3]: https://github.com/gnames/dwca/issues/3
 [#2]: https://github.com/gnames/dwca/issues/2
 [#1]: https://github.com/gnames/dwca/issues/1
-
 [changelog guidelines]: https://keepachangelog.com/en/1.0.0/
