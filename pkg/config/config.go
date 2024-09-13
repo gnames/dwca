@@ -8,7 +8,7 @@ import (
 
 var (
 	outputCompression = "zip"
-	outputCSVType     = "tsv"
+	outputCSVType     = "csv"
 	jobsNum           = 5
 )
 

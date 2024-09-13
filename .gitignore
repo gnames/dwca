@@ -24,6 +24,7 @@ t.json
 coverage.txt
 
 # Editor-specific files and directories
+tmp
 .vscode/
 .idea/
 *.swp

@@ -317,7 +317,6 @@ func (d *dcfileio) ExtensionStream(
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			return 0, &dcfile.ErrExtensionRead{Err: err}
 		}
@@ -372,7 +371,7 @@ func (d *dcfileio) ExportCSVStream(
 	for row := range outChan {
 		err = w.Write(row)
 		if err != nil {
-			for _ = range outChan {
+			for range outChan {
 			}
 			return err
 		}
@@ -533,9 +532,12 @@ func (d *dcfileio) openCSV(attr fileAttrs) (*gncsv.Reader, *os.File, error) {
 	quote := '"'
 	if attr.colSep == "\\t" {
 		colSep = '\t'
-		if attr.quote == "" {
-			quote = rune(7) // bell character
-		}
+	} else if attr.colSep == "|" {
+		colSep = '|'
+	}
+
+	if attr.quote == "" {
+		quote = rune(7) // bell character
 	}
 
 	path = filepath.Join(basePath, path)

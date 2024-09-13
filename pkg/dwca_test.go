@@ -38,6 +38,7 @@ func TestCoreData(t *testing.T) {
 		res00  string
 	}{
 		{"nolimit,nooffset", "data.tar.gz", 0, 0, 587, "leptogastrinae:tid:127"},
+		{"pipe", "data_pipe.tar.gz", 0, 0, 587, "leptogastrinae:tid:127"},
 		{"limit", "data.tar.gz", 0, 10, 10, "leptogastrinae:tid:127"},
 		{"offset", "data.tar.gz", 1, 0, 586, "leptogastrinae:tid:42"},
 		{"offset,limit", "data.tar.gz", 1, 10, 10, "leptogastrinae:tid:42"},
@@ -72,6 +73,7 @@ func TestCoreStream(t *testing.T) {
 		len  int
 	}{
 		{"tar.gz", "data.tar.gz", 587},
+		{"pipe", "data_pipe.tar.gz", 587},
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
@@ -114,6 +116,7 @@ func TestExtensionData(t *testing.T) {
 		res00  string
 	}{
 		{"nolimit,nooffset", "data.tar.gz", 0, 0, 0, 1, "leptogastrinae:tid:42"},
+		{"pipe", "data_pipe.tar.gz", 0, 0, 0, 1, "leptogastrinae:tid:42"},
 		{"limit", "data.tar.gz", 0, 0, 10, 1, "leptogastrinae:tid:42"},
 		{"offset", "data.tar.gz", 0, 1, 0, 0, ""},
 	}
@@ -151,6 +154,7 @@ func TestExtensionStream(t *testing.T) {
 		len   int
 	}{
 		{"tar.gz", "data.tar.gz", 0, 1},
+		{"pipe", "data_pipe.tar.gz", 0, 1},
 	}
 	ctx := context.Background()
 	for _, v := range tests {

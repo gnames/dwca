@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.8] - 2024-09-13 Fri
+
+Add [#22]: support '|' as a field separator.
+
 ## [v0.2.7] - 2024-09-13 Fri
 
 Fix [#20]: metadata and filename for eml.xml now match in output DwCA.
