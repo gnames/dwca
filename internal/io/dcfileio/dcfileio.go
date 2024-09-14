@@ -5,9 +5,7 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"context"
-	"encoding/csv"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -15,10 +13,11 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
+	"github.com/gnames/dwca/internal/ent"
 	"github.com/gnames/dwca/internal/ent/dcfile"
+	"github.com/gnames/dwca/internal/io/factory"
 	"github.com/gnames/dwca/pkg/config"
 	"github.com/gnames/dwca/pkg/ent/meta"
-	"github.com/gnames/gncsv"
 	"github.com/gnames/gnsys"
 )
 
@@ -78,6 +77,8 @@ func (d *dcfileio) Extract() error {
 	}
 }
 
+// ArchiveDir determines the directory where the files of DarwinCore archive
+// reside.
 func (d *dcfileio) ArchiveDir(path string) (string, error) {
 	var dirs []string
 	err := filepath.Walk(path,
@@ -120,47 +121,28 @@ func (d *dcfileio) CoreData(
 		return nil, &dcfile.ErrCoreRead{Err: errors.New("*meta.Meta is nil")}
 	}
 
-	attr := fileAttrs{
-		root:         root,
-		path:         meta.Core.Files.Location,
-		colSep:       meta.Core.FieldsTerminatedBy,
-		quote:        meta.Core.FieldsEnclosedBy,
-		ignoreHeader: meta.Core.IgnoreHeaderLines,
+	path, err := d.basePath(root, meta.Core.Files.Location)
+	if err != nil {
+		return nil, err
 	}
 
-	r, f, err := d.openCSV(attr)
+	attr := ent.CSVAttr{
+		Path:          path,
+		ColSep:        colSep(meta.Core.FieldsTerminatedBy),
+		Quote:         meta.Core.FieldsEnclosedBy,
+		IgnoreHeader:  meta.Core.IgnoreHeaderLines,
+		WithSloppyCSV: d.cfg.WithSloppyCSV,
+	}
+
+	r, err := factory.CSVReader(attr)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	res, err := r.ReadSlice(offset, limit)
 	if err != nil {
 		return nil, &dcfile.ErrCoreRead{Err: err}
-	}
-	defer f.Close()
-
-	// ignore headers if they are given
-	if attr.ignoreHeader == "1" {
-		r.Read()
-	}
-	var res [][]string
-
-	var count int
-	for {
-		count++
-
-		if limit > 0 && len(res) == limit {
-			break
-		}
-
-		row, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return nil, &dcfile.ErrCoreRead{Err: err}
-		}
-
-		if offset > 0 && count <= offset {
-			continue
-		}
-		res = append(res, row)
 	}
 
 	return res, nil
@@ -172,52 +154,31 @@ func (d *dcfileio) CoreStream(
 	meta *meta.Meta,
 	coreChan chan<- []string,
 ) (int, error) {
-	attr := fileAttrs{
-		root:         root,
-		path:         meta.Core.Files.Location,
-		colSep:       meta.Core.FieldsTerminatedBy,
-		ignoreHeader: meta.Core.IgnoreHeaderLines,
-	}
-
-	r, f, err := d.openCSV(attr)
+	path, err := d.basePath(root, meta.Core.Files.Location)
 	if err != nil {
-		return 0, &dcfile.ErrCoreRead{Err: err}
+		return 0, err
 	}
-	defer f.Close()
-
-	// ignore headers if they are given
-	if attr.ignoreHeader == "1" {
-		r.Read()
+	attr := ent.CSVAttr{
+		Path:          path,
+		ColSep:        colSep(meta.Core.FieldsTerminatedBy),
+		IgnoreHeader:  meta.Core.IgnoreHeaderLines,
+		WithSloppyCSV: d.cfg.WithSloppyCSV,
 	}
 
-	var count int64
-
-	for {
-		row, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return 0, &dcfile.ErrCoreRead{Err: err}
-		}
-
-		count++
-		if count%100_000 == 0 {
-			fmt.Printf("\r%s", strings.Repeat(" ", 35))
-			fmt.Printf("\rProcessed %s lines of Core", humanize.Comma(count))
-		}
-
-		select {
-		case <-ctx.Done():
-			return 0, &dcfile.ErrContext{Err: ctx.Err()}
-		default:
-			coreChan <- row
-		}
+	r, err := factory.CSVReader(attr)
+	if err != nil {
+		return 0, err
 	}
-	fmt.Printf("\r")
-	slog.Info("Processed core", "lines", humanize.Comma(count))
+	defer r.Close()
 
+	count, err := r.Read(ctx, coreChan)
 	close(coreChan)
+
+	if err != nil {
+		return int(count), &dcfile.ErrExtensionRead{Err: err}
+	}
+	slog.Info("Processed core", "lines", humanize.Comma(int64(count)))
+
 	return int(count), nil
 }
 
@@ -230,48 +191,29 @@ func (d *dcfileio) ExtensionData(
 	if len(meta.Extensions) <= index {
 		return nil, &dcfile.ErrExtensionRead{Err: errors.New("index out of range")}
 	}
+
 	ext := meta.Extensions[index]
-
-	attr := fileAttrs{
-		root:         root,
-		path:         ext.Files.Location,
-		colSep:       ext.FieldsTerminatedBy,
-		ignoreHeader: ext.IgnoreHeaderLines,
-	}
-
-	r, f, err := d.openCSV(attr)
+	path, err := d.basePath(root, ext.Files.Location)
 	if err != nil {
-		return nil, &dcfile.ErrExtensionRead{Err: err}
+		return nil, err
 	}
-	defer f.Close()
 
-	// ignore headers if they are given
-	if attr.ignoreHeader == "1" {
-		r.Read()
+	attr := ent.CSVAttr{
+		Path:          path,
+		ColSep:        colSep(ext.FieldsTerminatedBy),
+		IgnoreHeader:  ext.IgnoreHeaderLines,
+		WithSloppyCSV: d.cfg.WithSloppyCSV,
 	}
-	var res [][]string
 
-	var count int
-	for {
-		count++
+	r, err := factory.CSVReader(attr)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
 
-		if limit > 0 && len(res) == limit {
-			break
-		}
-
-		row, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return nil, &dcfile.ErrCoreRead{Err: err}
-		}
-
-		if offset > 0 && count <= offset {
-			continue
-		}
-		res = append(res, row)
+	res, err := r.ReadSlice(offset, limit)
+	if err != nil {
+		return nil, err
 	}
 
 	return res, nil
@@ -294,53 +236,35 @@ func (d *dcfileio) ExtensionStream(
 	extType := ext.RowType
 	extType = filepath.Base(extType)
 
-	attr := fileAttrs{
-		root:         root,
-		path:         ext.Files.Location,
-		colSep:       ext.FieldsTerminatedBy,
-		ignoreHeader: ext.IgnoreHeaderLines,
-	}
-
-	r, f, err := d.openCSV(attr)
+	path, err := d.basePath(root, ext.Files.Location)
 	if err != nil {
-		return 0, &dcfile.ErrExtensionRead{Err: err}
-	}
-	defer f.Close()
-	// ignore headers if they are given
-	if attr.ignoreHeader == "1" {
-		r.Read()
+		return 0, err
 	}
 
-	var count int64
-	for {
-		row, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return 0, &dcfile.ErrExtensionRead{Err: err}
-		}
-
-		count++
-		if count%100_000 == 0 {
-			fmt.Printf("\r%s", strings.Repeat(" ", 50))
-			fmt.Printf("\rProcessed %s lines of %s", humanize.Comma(count), extType)
-		}
-
-		select {
-		case <-ctx.Done():
-			return 0, &dcfile.ErrContext{Err: ctx.Err()}
-		default:
-			extChan <- row
-		}
+	attr := ent.CSVAttr{
+		Path:          path,
+		ColSep:        colSep(ext.FieldsTerminatedBy),
+		IgnoreHeader:  ext.IgnoreHeaderLines,
+		WithSloppyCSV: d.cfg.WithSloppyCSV,
 	}
 
-	fmt.Printf("\r")
-	slog.Info(
-		"Processed extension",
-		"lines", humanize.Comma(count), "ext", extType,
-	)
+	r, err := factory.CSVReader(attr)
+	if err != nil {
+		return 0, err
+	}
+	defer r.Close()
+
+	count, err := r.Read(ctx, extChan)
 	close(extChan)
+
+	if err != nil {
+		return int(count), &dcfile.ErrExtensionRead{Err: err}
+	}
+
+	slog.Info(
+		"Processed %s",
+		"lines", humanize.Comma(int64(count)), "ext", extType,
+	)
 	return int(count), nil
 }
 
@@ -351,39 +275,58 @@ func (d *dcfileio) ExportCSVStream(
 	delim string,
 	outChan <-chan []string,
 ) error {
-	path := filepath.Join(d.cfg.OutputPath, file)
-	f, err := os.Create(path)
-	if err != nil {
-		return &dcfile.ErrSaveCSV{Err: err}
+	attr := ent.CSVAttr{
+		Headers:       headers,
+		Path:          filepath.Join(d.cfg.OutputPath, file),
+		ColSep:        colSep(delim),
+		WithSloppyCSV: d.cfg.WithSloppyCSV,
 	}
-	defer f.Close()
-
-	w := csv.NewWriter(f)
-	w.Comma = ','
-	if delim == "\\t" {
-		w.Comma = '\t'
-	}
-
-	err = w.Write(headers)
+	w, err := factory.CSVWriter(attr)
 	if err != nil {
 		return err
 	}
-	for row := range outChan {
-		err = w.Write(row)
-		if err != nil {
-			for range outChan {
-			}
-			return err
-		}
-		select {
-		case <-ctx.Done():
-			return &dcfile.ErrContext{Err: ctx.Err()}
-		default:
-		}
+	defer w.Close()
+
+	err = w.Write(ctx, outChan)
+	if err != nil {
+		return err
 	}
-	w.Flush()
+
 	return nil
 }
+
+// 	f, err := os.Create(path)
+// 	if err != nil {
+// 		return &dcfile.ErrSaveCSV{Err: err}
+// 	}
+// 	defer f.Close()
+//
+// 	w := csv.NewWriter(f)
+// 	w.Comma = ','
+// 	if delim == "\\t" {
+// 		w.Comma = '\t'
+// 	}
+//
+// 	err = w.Write(headers)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for row := range outChan {
+// 		err = w.Write(row)
+// 		if err != nil {
+// 			for range outChan {
+// 			}
+// 			return err
+// 		}
+// 		select {
+// 		case <-ctx.Done():
+// 			return &dcfile.ErrContext{Err: ctx.Err()}
+// 		default:
+// 		}
+// 	}
+// 	w.Flush()
+// 	return nil
+// }
 
 func (d *dcfileio) SaveToFile(fileName string, bs []byte) error {
 	path := filepath.Join(d.cfg.OutputPath, fileName)
@@ -510,48 +453,22 @@ func (d *dcfileio) Close() error {
 	return os.RemoveAll(d.cfg.OutputPath)
 }
 
-type fileAttrs struct {
-	root         string
-	path         string
-	colSep       string
-	quote        string
-	ignoreHeader string
+func colSep(s string) rune {
+	if s == "\\t" {
+		return '\t'
+	}
+
+	if len(s) > 0 {
+		return rune(s[0])
+	}
+	return ','
 }
 
-func (d *dcfileio) openCSV(attr fileAttrs) (*gncsv.Reader, *os.File, error) {
-	path := attr.path
-	if path == "" {
-		return nil, nil, errors.New("file location is empty")
-	}
-	basePath, err := d.ArchiveDir(attr.root)
+func (d *dcfileio) basePath(root, filePath string) (string, error) {
+	path, err := d.ArchiveDir(root)
 	if err != nil {
-		return nil, nil, err
+		return "", err
 	}
-
-	colSep := ','
-	quote := '"'
-	if attr.colSep == "\\t" {
-		colSep = '\t'
-	} else if attr.colSep == "|" {
-		colSep = '|'
-	}
-
-	if attr.quote == "" {
-		quote = rune(7) // bell character
-	}
-
-	path = filepath.Join(basePath, path)
-
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	r := gncsv.NewReader(f)
-	r.Comma = colSep
-	r.Quote = quote
-	// allow variable number of fields
-	r.FieldsPerRecord = -1
-
-	return r, f, nil
+	path = filepath.Join(path, filePath)
+	return path, nil
 }

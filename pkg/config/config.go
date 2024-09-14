@@ -8,7 +8,7 @@ import (
 
 var (
 	outputCompression = "zip"
-	outputCSVType     = "csv"
+	outputCSVType     = "tsv"
 	jobsNum           = 5
 )
 
@@ -38,6 +38,9 @@ type Config struct {
 
 	// JobsNum is the number of concurrent jobs to run.
 	JobsNum int
+
+	// WithSloppyCSV allows to have more fields in a row, than it should have.
+	WithSloppyCSV bool
 }
 
 // Option is a function type that allows to standardize how options to
@@ -81,16 +84,22 @@ func OptOutputCSVType(s string) Option {
 }
 
 // OptJobsNum sets the number of concurrent jobs to run.
-func OptJobsNum(n int) Option {
+func OptJobsNum(i int) Option {
 	return func(c *Config) {
-		if n < 1 || n > 100 {
+		if i < 1 || i > 100 {
 			slog.Warn(
 				"Unsupported number of jobs (supported: 1-100). Using default value",
-				"bad-input", n, "default", jobsNum,
+				"bad-input", i, "default", jobsNum,
 			)
-			n = jobsNum
+			i = jobsNum
 		}
-		c.JobsNum = n
+		c.JobsNum = i
+	}
+}
+
+func OptWithSloppyCSV(b bool) Option {
+	return func(c *Config) {
+		c.WithSloppyCSV = b
 	}
 }
 

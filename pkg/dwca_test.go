@@ -27,6 +27,19 @@ func TestFactory(t *testing.T) {
 	assert.True(ok)
 }
 
+func TestStricterCSV(t *testing.T) {
+	assert := assert.New(t)
+	path := filepath.Join("testdata", "data.tar.gz")
+	cfg := config.New()
+	arc, err := dwca.Factory(path, cfg)
+	assert.Nil(err)
+	assert.Implements((*dwca.Archive)(nil), arc)
+
+	err = arc.Load(cfg.ExtractPath)
+	// breaks on diagnostics stage
+	assert.NotNil(err)
+}
+
 func TestCoreData(t *testing.T) {
 	assert := assert.New(t)
 	tests := []struct {
@@ -45,7 +58,7 @@ func TestCoreData(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New()
+		cfg := config.New(config.OptWithSloppyCSV(true))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -77,7 +90,7 @@ func TestCoreStream(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New()
+		cfg := config.New(config.OptWithSloppyCSV(true))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -123,7 +136,7 @@ func TestExtensionData(t *testing.T) {
 
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New()
+		cfg := config.New(config.OptWithSloppyCSV(true))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -159,7 +172,7 @@ func TestExtensionStream(t *testing.T) {
 	ctx := context.Background()
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New()
+		cfg := config.New(config.OptWithSloppyCSV(true))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -203,7 +216,7 @@ func TestSynDiagnose(t *testing.T) {
 
 	for _, v := range tests {
 		path := filepath.Join("testdata", "diagn", "synonyms", v.file)
-		cfg := config.New()
+		cfg := config.New(config.OptWithSloppyCSV(true))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)

@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.9] - 2024-09-18 Wed
+
+Add [#23]: read/write CSV files with empty FieldsEnclosedBy differntly from
+"proper" CSV.
+
 ## [v0.2.8] - 2024-09-13 Fri
 
 Add [#22]: support '|' as a field separator.
