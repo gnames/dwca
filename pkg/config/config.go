@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+
+	"github.com/gnames/dwca/internal/ent"
 )
 
 var (
@@ -40,7 +42,7 @@ type Config struct {
 	JobsNum int
 
 	// WithSloppyCSV allows to have more fields in a row, than it should have.
-	WithSloppyCSV bool
+	WrongFieldsNum ent.BadRow
 }
 
 // Option is a function type that allows to standardize how options to
@@ -97,9 +99,9 @@ func OptJobsNum(i int) Option {
 	}
 }
 
-func OptWithSloppyCSV(b bool) Option {
+func OptWrongFieldsNum(br ent.BadRow) Option {
 	return func(c *Config) {
-		c.WithSloppyCSV = b
+		c.WrongFieldsNum = br
 	}
 }
 
@@ -117,6 +119,7 @@ func New(opts ...Option) Config {
 		OutputArchiveCompression: outputCompression,
 		OutputCSVType:            outputCSVType,
 		JobsNum:                  jobsNum,
+		WrongFieldsNum:           ent.ErrorBadRow,
 	}
 
 	for _, opt := range opts {

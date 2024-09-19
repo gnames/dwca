@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.0] - 2024-09-26 Thu
+
+Add [#25]: add options for skipping or processing rows with wrong fields number.
+Add [#24]: make CSV default output format instead of TSV.
+
 ## [v0.2.9] - 2024-09-18 Wed
 
 Add [#23]: read/write CSV files with empty FieldsEnclosedBy differntly from
@@ -78,6 +83,9 @@ Add: initial commit
 
 This document follows [changelog guidelines]
 
+[v0.3.0]: https://github.com/gnames/dwca/compare/v0.2.9...v0.3.0
+[v0.2.9]: https://github.com/gnames/dwca/compare/v0.2.8...v0.2.9
+[v0.2.8]: https://github.com/gnames/dwca/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/gnames/dwca/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/gnames/dwca/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/gnames/dwca/compare/v0.2.4...v0.2.5

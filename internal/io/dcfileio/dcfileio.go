@@ -127,11 +127,11 @@ func (d *dcfileio) CoreData(
 	}
 
 	attr := ent.CSVAttr{
-		Path:          path,
-		ColSep:        colSep(meta.Core.FieldsTerminatedBy),
-		Quote:         meta.Core.FieldsEnclosedBy,
-		IgnoreHeader:  meta.Core.IgnoreHeaderLines,
-		WithSloppyCSV: d.cfg.WithSloppyCSV,
+		Path:             path,
+		ColSep:           colSep(meta.Core.FieldsTerminatedBy),
+		Quote:            meta.Core.FieldsEnclosedBy,
+		IgnoreHeader:     meta.Core.IgnoreHeaderLines,
+		BadRowProcessing: d.cfg.WrongFieldsNum,
 	}
 
 	r, err := factory.CSVReader(attr)
@@ -159,10 +159,11 @@ func (d *dcfileio) CoreStream(
 		return 0, err
 	}
 	attr := ent.CSVAttr{
-		Path:          path,
-		ColSep:        colSep(meta.Core.FieldsTerminatedBy),
-		IgnoreHeader:  meta.Core.IgnoreHeaderLines,
-		WithSloppyCSV: d.cfg.WithSloppyCSV,
+		Path:             path,
+		ColSep:           colSep(meta.Core.FieldsTerminatedBy),
+		Quote:            meta.Core.FieldsEnclosedBy,
+		IgnoreHeader:     meta.Core.IgnoreHeaderLines,
+		BadRowProcessing: d.cfg.WrongFieldsNum,
 	}
 
 	r, err := factory.CSVReader(attr)
@@ -199,10 +200,10 @@ func (d *dcfileio) ExtensionData(
 	}
 
 	attr := ent.CSVAttr{
-		Path:          path,
-		ColSep:        colSep(ext.FieldsTerminatedBy),
-		IgnoreHeader:  ext.IgnoreHeaderLines,
-		WithSloppyCSV: d.cfg.WithSloppyCSV,
+		Path:             path,
+		ColSep:           colSep(ext.FieldsTerminatedBy),
+		IgnoreHeader:     ext.IgnoreHeaderLines,
+		BadRowProcessing: d.cfg.WrongFieldsNum,
 	}
 
 	r, err := factory.CSVReader(attr)
@@ -242,10 +243,10 @@ func (d *dcfileio) ExtensionStream(
 	}
 
 	attr := ent.CSVAttr{
-		Path:          path,
-		ColSep:        colSep(ext.FieldsTerminatedBy),
-		IgnoreHeader:  ext.IgnoreHeaderLines,
-		WithSloppyCSV: d.cfg.WithSloppyCSV,
+		Path:             path,
+		ColSep:           colSep(ext.FieldsTerminatedBy),
+		IgnoreHeader:     ext.IgnoreHeaderLines,
+		BadRowProcessing: d.cfg.WrongFieldsNum,
 	}
 
 	r, err := factory.CSVReader(attr)
@@ -276,10 +277,10 @@ func (d *dcfileio) ExportCSVStream(
 	outChan <-chan []string,
 ) error {
 	attr := ent.CSVAttr{
-		Headers:       headers,
-		Path:          filepath.Join(d.cfg.OutputPath, file),
-		ColSep:        colSep(delim),
-		WithSloppyCSV: d.cfg.WithSloppyCSV,
+		Headers:          headers,
+		Path:             filepath.Join(d.cfg.OutputPath, file),
+		ColSep:           colSep(delim),
+		BadRowProcessing: d.cfg.WrongFieldsNum,
 	}
 	w, err := factory.CSVWriter(attr)
 	if err != nil {

@@ -6,12 +6,14 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/dustin/go-humanize"
 	"github.com/gnames/dwca/internal/ent"
 	"github.com/gnames/dwca/internal/ent/dcfile"
+	"github.com/gnames/gnfmt"
 )
 
 type csvnio struct {
@@ -33,7 +35,9 @@ func New(attr ent.CSVAttr) (ent.CSVReader, error) {
 	r.Comma = res.a.ColSep
 
 	// allow variable number of fields
-	r.FieldsPerRecord = -1
+	if res.a.BadRowProcessing != ent.ErrorBadRow {
+		r.FieldsPerRecord = -1
+	}
 	res.r = r
 
 	return res, nil
@@ -45,15 +49,17 @@ func NewWriter(attr ent.CSVAttr) (ent.CSVWriter, error) {
 }
 
 func (c *csvnio) ReadSlice(offset, limit int) ([][]string, error) {
-	// ignore headers gif they are given
-	if c.a.IgnoreHeader == "1" {
-		c.r.Read()
+	fieldsNum, lineNum, err := c.skipHeader()
+	if err != nil {
+		return nil, err
 	}
+
+	var line int
 	var res [][]string
 
 	var count int
 	for {
-		count++
+		line++
 
 		if limit > 0 && len(res) == limit {
 			break
@@ -64,17 +70,73 @@ func (c *csvnio) ReadSlice(offset, limit int) ([][]string, error) {
 			break
 		}
 
+		if fieldsNum == 0 {
+			fieldsNum = len(row)
+		}
+
 		if err != nil {
-			return nil, &dcfile.ErrCoreRead{Err: err}
+			return nil, err
 		}
 
 		if offset > 0 && count <= offset {
 			continue
 		}
+		rowFieldsNum := len(row)
+		if fieldsNum == 0 {
+			fieldsNum = rowFieldsNum
+		}
+
+		if rowFieldsNum != fieldsNum {
+			skip := c.badRow(lineNum, fieldsNum, rowFieldsNum)
+			if skip {
+				continue
+			} else {
+				// set row to the required size
+				row = gnfmt.NormRowSize(row, fieldsNum)
+			}
+		}
+
+		count++
 		res = append(res, row)
 	}
-
 	return res, nil
+}
+
+func (c *csvnio) skipHeader() (int, int, error) {
+	var fieldsNum, lineNum int
+	// ignore headers gif they are given
+	if c.a.IgnoreHeader == "1" {
+		lineNum++
+		row, err := c.r.Read()
+		if err != nil {
+			return 0, 0, err
+		}
+		fieldsNum = len(row)
+	}
+	return fieldsNum, lineNum, nil
+}
+
+func (c *csvnio) badRow(
+	lineNum, fieldsNum, rowFieldsNum int,
+) bool {
+	switch c.a.BadRowProcessing {
+	case ent.SkipBadRow:
+		slog.Warn(
+			"Wrong number of fields, SKIPPING row",
+			"line", lineNum,
+			"fieldsNum", fieldsNum,
+			"rowFieldsNum", rowFieldsNum,
+		)
+		return true
+	case ent.ProcessBadRow:
+		slog.Warn(
+			"Wrong number of fields, PROCESSING the row anyway",
+			"line", lineNum,
+			"fieldsNum", fieldsNum,
+			"rowFieldsNum", rowFieldsNum,
+		)
+	}
+	return false
 }
 
 func (c *csvnio) Read(
@@ -82,8 +144,9 @@ func (c *csvnio) Read(
 	ch chan<- []string,
 ) (int, error) {
 	// ignore headers if they are given
-	if c.a.IgnoreHeader == "1" {
-		c.r.Read()
+	fieldsNum, lineNum, err := c.skipHeader()
+	if err != nil {
+		return 0, err
 	}
 
 	var count int64
@@ -93,7 +156,22 @@ func (c *csvnio) Read(
 			break
 		}
 		if err != nil {
-			return 0, &dcfile.ErrExtensionRead{Err: err}
+			return 0, err
+		}
+
+		rowFieldsNum := len(row)
+
+		if fieldsNum == 0 {
+			fieldsNum = rowFieldsNum
+		}
+
+		if fieldsNum != rowFieldsNum {
+			skip := c.badRow(lineNum, fieldsNum, rowFieldsNum)
+			if skip {
+				continue
+			} else {
+				row = gnfmt.NormRowSize(row, fieldsNum)
+			}
 		}
 
 		count++

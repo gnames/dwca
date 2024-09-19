@@ -96,7 +96,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("version", "V", false, "show version")
+	rootCmd.Flags().BoolP("version", "V", false, "Show version")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -168,7 +168,7 @@ func getOpts() {
 	}
 }
 
-// touchConfigFile checks if config file exists, and if not, it gets created.
+// touchConfigFile checks if config file exists, and if not, it gets created.roo
 func touchConfigFile(configPath string) error {
 	exists, err := gnsys.FileExists(configPath)
 	if exists || err != nil {

@@ -39,7 +39,7 @@ var normalizeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		flags := []flagFunc{
-			debugFlag, rootDirFlag, jobsNumFlag, archiveFlag, csvFlag,
+			debugFlag, rootDirFlag, jobsNumFlag, archiveFlag, csvFlag, fieldsNumFlag,
 		}
 		for _, v := range flags {
 			v(cmd)
@@ -100,6 +100,13 @@ func init() {
 	// is called directly, e.g.:
 	normalizeCmd.Flags().StringP("archive-format", "a", "",
 		"format of the output archive (tar or zip)",
+	)
+
+	normalizeCmd.PersistentFlags().StringP(
+		"wrong-fields-num", "w", "",
+		"how to process rows with wrong fields number\n"+
+			"choices: 'stop', 'skip', 'process'\n"+
+			"default: 'stop'",
 	)
 
 	normalizeCmd.Flags().StringP("csv-type", "c", "",
