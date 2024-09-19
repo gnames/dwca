@@ -29,7 +29,8 @@ type DCFile interface {
 
 	// CoreStream populates a channel that streams the content of the core file
 	// as a slice of strings. Each slice of strings represents a row in the core
-	// file.
+	// file. It returns the number of rows processed, and an error, if it
+	// happened.
 	CoreStream(
 		ctx context.Context,
 		root string,
@@ -50,7 +51,8 @@ type DCFile interface {
 	// ExtensionStream populates a channel that streams the content of the
 	// extension file as a slice of strings. Each slice of strings represents a
 	// row in the extension file. The index is the index of the extension file in
-	// the meta file.
+	// the meta file. It returns the number of processed rows and an error, if
+	// it was raised.
 	ExtensionStream(
 		ctx context.Context,
 		index int, root string,

@@ -5,12 +5,14 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/dustin/go-humanize"
 	"github.com/gnames/dwca/internal/ent"
 	"github.com/gnames/dwca/internal/ent/dcfile"
+	"github.com/gnames/gnfmt"
 )
 
 type csvsio struct {
@@ -46,16 +48,61 @@ func NewWriter(attr ent.CSVAttr) (ent.CSVWriter, error) {
 	return res, nil
 }
 
-func (c *csvsio) ReadSlice(offset, limit int) ([][]string, error) {
+func (c *csvsio) skipHeader() (int, int) {
+	var fieldsNum, lineNum int
 	// ignore headers gif they are given
 	if c.a.IgnoreHeader == "1" {
+		lineNum++
 		c.r.Scan()
+		line := c.r.Text()
+		sep := string(c.a.ColSep)
+		row := strings.Split(line, sep)
+		fieldsNum = len(row)
 	}
+	return fieldsNum, lineNum
+}
+
+func (c *csvsio) badRow(
+	lineNum, fieldsNum, rowFieldsNum int,
+) (bool, error) {
+	switch c.a.BadRowProcessing {
+	case ent.ErrorBadRow:
+		err := fmt.Errorf("wrong number of fieds: '%d'", lineNum)
+		slog.Error("Bad row",
+			"line", lineNum,
+			"fieldsNum", fieldsNum,
+			"rowFieldsNum", rowFieldsNum,
+			"error", err,
+		)
+		return false, err
+	case ent.SkipBadRow:
+		slog.Warn(
+			"Wrong number of fields, SKIPPING row",
+			"line", lineNum,
+			"fieldsNum", fieldsNum,
+			"rowFieldsNum", rowFieldsNum,
+		)
+		return true, nil
+	case ent.ProcessBadRow:
+		slog.Warn(
+			"Wrong number of fields, PROCESSING the row anyway",
+			"line", lineNum,
+			"fieldsNum", fieldsNum,
+			"rowFieldsNum", rowFieldsNum,
+		)
+	}
+	return false, nil
+}
+
+func (c *csvsio) ReadSlice(offset, limit int) ([][]string, error) {
+
+	fieldsNum, lineNum := c.skipHeader()
+
 	var res [][]string
-	var fieldsCount int
 	var count int
 	for c.r.Scan() {
 		count++
+		lineNum++
 
 		if limit > 0 && len(res) == limit {
 			break
@@ -68,12 +115,20 @@ func (c *csvsio) ReadSlice(offset, limit int) ([][]string, error) {
 		line := c.r.Text()
 		sep := string(c.a.ColSep)
 		row := strings.Split(line, sep)
-		if fieldsCount == 0 {
-			fieldsCount = len(row)
+		rowFieldsNum := len(row)
+		if fieldsNum == 0 {
+			fieldsNum = rowFieldsNum
 		}
 
-		if !c.a.WithSloppyCSV && fieldsCount != len(row) {
-			return nil, fmt.Errorf("wrong number of fieds: '%s'", line)
+		if fieldsNum != rowFieldsNum {
+			skip, err := c.badRow(lineNum, fieldsNum, rowFieldsNum)
+			if skip {
+				continue
+			}
+			if err != nil {
+				return nil, err
+			}
+			row = gnfmt.NormRowSize(row, fieldsNum)
 		}
 
 		res = append(res, row)
@@ -90,15 +145,10 @@ func (c *csvsio) Read(
 	ctx context.Context,
 	ch chan<- []string,
 ) (int, error) {
-	// ignore headers if they are given
-	if c.a.IgnoreHeader == "1" {
-		c.r.Scan()
-	}
+	fieldsNum, lineNum := c.skipHeader()
 
-	var fieldsCount int
 	var count int64
 	for c.r.Scan() {
-		count++
 		if count%100_000 == 0 {
 			fmt.Printf("\r%s", strings.Repeat(" ", 50))
 			fmt.Printf("\rProcessed %s lines", humanize.Comma(count))
@@ -107,18 +157,27 @@ func (c *csvsio) Read(
 		line := c.r.Text()
 		sep := string(c.a.ColSep)
 		row := strings.Split(line, sep)
-		if fieldsCount == 0 {
-			fieldsCount = len(row)
+		rowFieldsNum := len(row)
+		if fieldsNum == 0 {
+			fieldsNum = rowFieldsNum
 		}
 
-		if !c.a.WithSloppyCSV && fieldsCount != len(row) {
-			return 0, fmt.Errorf("wrong number of fieds: '%s'", line)
+		if fieldsNum != rowFieldsNum {
+			skip, err := c.badRow(lineNum, fieldsNum, rowFieldsNum)
+			if skip {
+				continue
+			}
+			if err != nil {
+				return 0, err
+			}
+			row = gnfmt.NormRowSize(row, fieldsNum)
 		}
 
 		select {
 		case <-ctx.Done():
 			return 0, &dcfile.ErrContext{Err: ctx.Err()}
 		default:
+			count++
 			ch <- row
 		}
 	}
