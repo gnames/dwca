@@ -6,13 +6,13 @@ checklist files are supported.
 <!-- vim-markdown-toc GFM -->
 
 * [Installation](#installation)
-    * [Homebrew on Mac OS X, Linux, and Linux on Windows (WSL2)](#homebrew-on-mac-os-x-linux-and-linux-on-windows-wsl2)
-    * [Manual Install](#manual-install)
-        * [Linux and Mac without Homebrew](#linux-and-mac-without-homebrew)
-        * [Go](#go)
+  * [Homebrew on Mac OS X, Linux, and Linux on Windows (WSL2)](#homebrew-on-mac-os-x-linux-and-linux-on-windows-wsl2)
+  * [Manual Install](#manual-install)
+    * [Linux and Mac without Homebrew](#linux-and-mac-without-homebrew)
+    * [Go](#go)
 * [Configuration](#configuration)
 * [Usage](#usage)
-    * [Usage as a command line app](#usage-as-a-command-line-app)
+  * [Usage as a command line app](#usage-as-a-command-line-app)
 * [Development](#development)
 * [Testing](#testing)
 
@@ -28,6 +28,7 @@ TLDR:
     brew tap gnames/gn
     brew install dwca
     ```
+
 [Homebrew] is a popular package manager for Open Source software originally
 developed for Mac OS X. Now it is also available on Linux, and can easily
 be used on MS Windows 10 or 11, if Windows Subsystem for Linux (WSL) is
@@ -41,12 +42,13 @@ go to the `Linux and Mac without Homebrew` section.
 
 2. Install `dwca` with:
 
-    ```bash
-    brew tap gnames/gn
-    brew install dwca
-    # to upgrade
-    brew upgrade dwca
-    ```
+   ```bash
+   brew tap gnames/gn
+   brew install dwca
+   # to upgrade
+   brew upgrade dwca
+   ```
+
 ### Manual Install
 
 `dwca` consists of just one executable file, so it is pretty easy to
@@ -55,8 +57,8 @@ operating system from the [latest release][releases].
 
 #### Linux and Mac without Homebrew
 
-Move ``dwca`` executable somewhere in your PATH
-(for example ``/usr/local/bin``)
+Move `dwca` executable somewhere in your PATH
+(for example `/usr/local/bin`)
 
 ```bash
 sudo mv path_to/gnfinder /usr/local/bin
@@ -75,8 +77,8 @@ make install
 
 ## Configuration
 
-When you run ``dwca -V`` command for the first time, it will create a
-[``dwca.yml``][dwca.yml] configuration file.
+When you run `dwca -V` command for the first time, it will create a
+[`dwca.yml`][dwca.yml] configuration file.
 
 This file should be located in the following places:
 
@@ -86,7 +88,7 @@ Mac OS: `$HOME/.config/dwca.yml`
 
 Linux: `$HOME/.config/dwca.yml`
 
-This file allows to set options that will modify behaviour of ``dwca``
+This file allows to set options that will modify behaviour of `dwca`
 according to your needs. It will spare you from entering the same flags for the
 command line application again and again.
 
@@ -96,7 +98,7 @@ It is also possible to setup environment variables. They will override the
 settings in both the configuration file and from the flags.
 
 | Settings                 | Environment variables           |
-|--------------------------|---------------------------------|
+| ------------------------ | ------------------------------- |
 | RootPath                 | DWCA_ROOT_PATH                  |
 | OutputArchiveCompression | DWCA_OUTPUT_ARCHIVE_COMPRESSION |
 | OutputCSVType            | DWCA_OUTPUT_CSV_TYPE            |
@@ -130,6 +132,9 @@ dwca normalize -j 100 input_file.zip  <output.zip>
 dwca normalize -c csv input_dwca.zip
 ## change to a `tar.gz` archive
 dwca normalize -a tar input_dwca.zip
+## to skip or process rows with wrong number of fields in CSV files
+dwca normalize -w skip input_dwca.zip
+dwca normalize --wrong-fields-num process input_dwca.zip
 ```
 
 If output path is not given, the output will be `{input file name}.norm.zip` or
