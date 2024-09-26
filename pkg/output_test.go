@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gnames/dwca/internal/ent"
 	"github.com/gnames/dwca/internal/ent/diagn"
 	dwca "github.com/gnames/dwca/pkg"
 	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/gnfmt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +27,7 @@ func TestNormalizeDwCA(t *testing.T) {
 	for _, v := range tests {
 		v.path = append([]string{"testdata"}, v.path...)
 		path := filepath.Join(v.path...)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -56,7 +56,7 @@ func TestCompress(t *testing.T) {
 	for _, v := range tests {
 		ari := append([]string{"testdata", "diagn", "hierarchy"}, v.in)
 		path := filepath.Join(ari...)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		err = arc.Load(cfg.ExtractPath)
@@ -86,7 +86,7 @@ func TestIndexNoField(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", "diagn", "hierarchy", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err, v.msg)
 

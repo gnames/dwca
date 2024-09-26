@@ -2,23 +2,8 @@ package ent
 
 import (
 	"context"
-)
 
-// BadRow type describes different scenarios of processing rows with wrong
-// number of fields.
-type BadRow int
-
-const (
-	// ProcessBadRow means processing bad row hoping for the best.
-	ProcessBadRow BadRow = iota
-
-	// SkipBadRow means that rows with wrong number of fields will not be
-	// processed.
-	SkipBadRow
-
-	// ErrorBadRow means that an error will be returned when a row with wrong
-	// number of fields is encountered.
-	ErrorBadRow
+	"github.com/gnames/gnfmt"
 )
 
 // CSVAttr describes a variety of configuration attributes for reading and
@@ -45,7 +30,7 @@ type CSVAttr struct {
 	// wrong number of elements. The 'bad rows' would either be processed,
 	// ignored, of break the execution of the program. Default is to raise an
 	// error.
-	BadRowProcessing BadRow
+	BadRowProcessing gnfmt.BadRow
 }
 
 type CSVReader interface {

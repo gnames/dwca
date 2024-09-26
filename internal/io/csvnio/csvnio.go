@@ -35,7 +35,7 @@ func New(attr ent.CSVAttr) (ent.CSVReader, error) {
 	r.Comma = res.a.ColSep
 
 	// allow variable number of fields
-	if res.a.BadRowProcessing != ent.ErrorBadRow {
+	if res.a.BadRowProcessing != gnfmt.ErrorBadRow {
 		r.FieldsPerRecord = -1
 	}
 	res.r = r
@@ -120,7 +120,7 @@ func (c *csvnio) badRow(
 	lineNum, fieldsNum, rowFieldsNum int,
 ) bool {
 	switch c.a.BadRowProcessing {
-	case ent.SkipBadRow:
+	case gnfmt.SkipBadRow:
 		slog.Warn(
 			"Wrong number of fields, SKIPPING row",
 			"line", lineNum,
@@ -128,7 +128,7 @@ func (c *csvnio) badRow(
 			"rowFieldsNum", rowFieldsNum,
 		)
 		return true
-	case ent.ProcessBadRow:
+	case gnfmt.ProcessBadRow:
 		slog.Warn(
 			"Wrong number of fields, PROCESSING the row anyway",
 			"line", lineNum,

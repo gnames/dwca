@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/gnames/dwca/internal/ent"
 	dwca "github.com/gnames/dwca/pkg"
 	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/gnfmt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -160,7 +160,7 @@ func TestSkipCoreRows(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", "fldnum", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.SkipBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.SkipBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -219,7 +219,7 @@ func TestSkipExtRows(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", "fldnum", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.SkipBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.SkipBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -277,7 +277,7 @@ func TestProcessCoreRows(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", "fldnum", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -336,7 +336,7 @@ func TestProcessExtRows(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", "fldnum", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)

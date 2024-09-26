@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/gnames/dwca/internal/ent"
 	dwca "github.com/gnames/dwca/pkg"
 	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/gnfmt"
 	"github.com/spf13/cobra"
 )
 
@@ -36,11 +36,11 @@ func fieldsNumFlag(cmd *cobra.Command) {
 	case "":
 		return
 	case "stop":
-		opts = append(opts, config.OptWrongFieldsNum(ent.ErrorBadRow))
+		opts = append(opts, config.OptWrongFieldsNum(gnfmt.ErrorBadRow))
 	case "ignore":
-		opts = append(opts, config.OptWrongFieldsNum(ent.SkipBadRow))
+		opts = append(opts, config.OptWrongFieldsNum(gnfmt.SkipBadRow))
 	case "process":
-		opts = append(opts, config.OptWrongFieldsNum(ent.ProcessBadRow))
+		opts = append(opts, config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 	default:
 		slog.Warn("Unknown setting for wrong-fields-num, keeping default",
 			"setting", s)

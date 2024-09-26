@@ -66,7 +66,7 @@ func (c *csvsio) badRow(
 	lineNum, fieldsNum, rowFieldsNum int,
 ) (bool, error) {
 	switch c.a.BadRowProcessing {
-	case ent.ErrorBadRow:
+	case gnfmt.ErrorBadRow:
 		err := fmt.Errorf("wrong number of fieds: '%d'", lineNum)
 		slog.Error("Bad row",
 			"line", lineNum,
@@ -75,7 +75,7 @@ func (c *csvsio) badRow(
 			"error", err,
 		)
 		return false, err
-	case ent.SkipBadRow:
+	case gnfmt.SkipBadRow:
 		slog.Warn(
 			"Wrong number of fields, SKIPPING row",
 			"line", lineNum,
@@ -83,7 +83,7 @@ func (c *csvsio) badRow(
 			"rowFieldsNum", rowFieldsNum,
 		)
 		return true, nil
-	case ent.ProcessBadRow:
+	case gnfmt.ProcessBadRow:
 		slog.Warn(
 			"Wrong number of fields, PROCESSING the row anyway",
 			"line", lineNum,

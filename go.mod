@@ -4,7 +4,7 @@ go 1.22.5
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/gnames/gnfmt v0.4.4
+	github.com/gnames/gnfmt v0.4.5
 	github.com/gnames/gnlib v0.44.0
 	github.com/gnames/gnparser v1.10.1
 	github.com/gnames/gnsys v0.3.3

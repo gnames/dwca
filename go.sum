@@ -123,8 +123,8 @@ github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nos
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gnames/gnfmt v0.1.0/go.mod h1:WG9c3CoiVrGc1SDsxLk7zjmv2B4UIzI00m4K5Khc/d0=
-github.com/gnames/gnfmt v0.4.4 h1:Xx+eIwdyKZR//RBl9p/4zFAQOJXxi8nYg6B6qVX3e7o=
-github.com/gnames/gnfmt v0.4.4/go.mod h1:sga+oG6Qwfr0rqznMKpB72FdgcJPdP68WtrG7R4JrrI=
+github.com/gnames/gnfmt v0.4.5 h1:wALSsnK0Eo1YH+u5sOeFosG5LKSfvl/mo5htfIGrBFY=
+github.com/gnames/gnfmt v0.4.5/go.mod h1:sga+oG6Qwfr0rqznMKpB72FdgcJPdP68WtrG7R4JrrI=
 github.com/gnames/gnlib v0.44.0 h1:nIvVW9+iO+BJFGEvo9zVSer9xz0DM6WlLt6SU7IdDFY=
 github.com/gnames/gnlib v0.44.0/go.mod h1:Om7iEOZmSXapYwxriIxxCNR4aPYsrCVdtzJAX7TY15E=
 github.com/gnames/gnparser v1.10.1 h1:oUDm8CksQC11ELYg57FzMXgQ8uIiRzmgxdGpEcgpp+U=

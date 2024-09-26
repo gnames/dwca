@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gnames/dwca/internal/ent"
 	"github.com/gnames/dwca/internal/ent/dcfile"
 	"github.com/gnames/dwca/internal/ent/diagn"
 	dwca "github.com/gnames/dwca/pkg"
 	"github.com/gnames/dwca/pkg/config"
+	"github.com/gnames/gnfmt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -59,7 +59,7 @@ func TestCoreData(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -91,7 +91,7 @@ func TestCoreStream(t *testing.T) {
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -137,7 +137,7 @@ func TestExtensionData(t *testing.T) {
 
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -173,7 +173,7 @@ func TestExtensionStream(t *testing.T) {
 	ctx := context.Background()
 	for _, v := range tests {
 		path := filepath.Join("testdata", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
@@ -217,7 +217,7 @@ func TestSynDiagnose(t *testing.T) {
 
 	for _, v := range tests {
 		path := filepath.Join("testdata", "diagn", "synonyms", v.file)
-		cfg := config.New(config.OptWrongFieldsNum(ent.ProcessBadRow))
+		cfg := config.New(config.OptWrongFieldsNum(gnfmt.ProcessBadRow))
 		arc, err := dwca.Factory(path, cfg)
 		assert.Nil(err)
 		assert.Implements((*dwca.Archive)(nil), arc)
