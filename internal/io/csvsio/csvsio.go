@@ -101,8 +101,8 @@ func (c *csvsio) ReadSlice(offset, limit int) ([][]string, error) {
 	var res [][]string
 	var count int
 	for c.r.Scan() {
-		count++
 		lineNum++
+		count++
 
 		if limit > 0 && len(res) == limit {
 			break
@@ -149,6 +149,8 @@ func (c *csvsio) Read(
 
 	var count int64
 	for c.r.Scan() {
+		lineNum++
+
 		if count%100_000 == 0 {
 			fmt.Printf("\r%s", strings.Repeat(" ", 50))
 			fmt.Printf("\rProcessed %s lines", humanize.Comma(count))

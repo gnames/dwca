@@ -202,6 +202,7 @@ func (d *dcfileio) ExtensionData(
 	attr := ent.CSVAttr{
 		Path:             path,
 		ColSep:           colSep(ext.FieldsTerminatedBy),
+		Quote:            ext.FieldsEnclosedBy,
 		IgnoreHeader:     ext.IgnoreHeaderLines,
 		BadRowProcessing: d.cfg.WrongFieldsNum,
 	}
@@ -245,6 +246,7 @@ func (d *dcfileio) ExtensionStream(
 	attr := ent.CSVAttr{
 		Path:             path,
 		ColSep:           colSep(ext.FieldsTerminatedBy),
+		Quote:            ext.FieldsEnclosedBy,
 		IgnoreHeader:     ext.IgnoreHeaderLines,
 		BadRowProcessing: d.cfg.WrongFieldsNum,
 	}

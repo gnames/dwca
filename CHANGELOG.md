@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.2] - 2024-09-27 Fri
+
+Fix: CSV extensions processed by RFC CSV path.
+Fix: the line count during csv read.
+
 ## [v0.3.1] - 2024-09-26 Thu
 
 Add: move BadRow from ent to gnfmt external module
@@ -87,6 +92,7 @@ Add: initial commit
 
 This document follows [changelog guidelines]
 
+[v0.3.2]: https://github.com/gnames/dwca/compare/v0.3.1...v0.3.2
 [v0.3.1]: https://github.com/gnames/dwca/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/gnames/dwca/compare/v0.2.9...v0.3.0
 [v0.2.9]: https://github.com/gnames/dwca/compare/v0.2.8...v0.2.9

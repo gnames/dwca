@@ -54,12 +54,11 @@ func (c *csvnio) ReadSlice(offset, limit int) ([][]string, error) {
 		return nil, err
 	}
 
-	var line int
 	var res [][]string
 
 	var count int
 	for {
-		line++
+		lineNum++
 
 		if limit > 0 && len(res) == limit {
 			break
@@ -151,6 +150,7 @@ func (c *csvnio) Read(
 
 	var count int64
 	for {
+		lineNum++
 		row, err := c.r.Read()
 		if err == io.EOF {
 			break
