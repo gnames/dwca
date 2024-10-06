@@ -2,7 +2,10 @@ package dwca_test
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/gnames/dwca/internal/ent/dcfile"
@@ -77,6 +80,35 @@ func TestCoreData(t *testing.T) {
 		err = arc.Close()
 		assert.Nil(err)
 	}
+}
+
+// TestDomain checks if Domain is included in flat hierarchy.
+func TestDomain(t *testing.T) {
+	assert := assert.New(t)
+	path := filepath.Join("testdata", "domain.tar.gz")
+	cfg := config.New()
+	arc, err := dwca.Factory(path, cfg)
+	assert.Nil(err)
+	assert.Implements((*dwca.Archive)(nil), arc)
+
+	err = arc.Load(cfg.ExtractPath)
+	assert.Nil(err)
+
+	err = arc.Normalize()
+	assert.Nil(err)
+
+	path = filepath.Join(cfg.OutputPath, "taxa.txt")
+	bs, err := os.ReadFile(path)
+	assert.Nil(err)
+
+	rows := strings.Split(string(bs), "\n")
+	assert.Equal(8, len(rows))
+	assert.Contains(rows[2], "domain")
+
+	fmt.Println(path)
+
+	err = arc.Close()
+	assert.Nil(err)
 }
 
 func TestCoreStream(t *testing.T) {

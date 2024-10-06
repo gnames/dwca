@@ -9,6 +9,7 @@ import (
 type taxon struct {
 	scientificName,
 	scientificNameAuthorship,
+	domain,
 	kingdom,
 	phylum,
 	class,
@@ -44,6 +45,7 @@ func (a *arch) newTaxon() *taxon {
 	res := taxon{
 		scientificName:           -1,
 		scientificNameAuthorship: -1,
+		domain:                   -1,
 		kingdom:                  -1,
 		phylum:                   -1,
 		class:                    -1,
@@ -74,6 +76,10 @@ func (a *arch) newTaxon() *taxon {
 			res.scientificName = v.Index
 		case "scientificnameauthorship":
 			res.scientificNameAuthorship = v.Index
+		case "domain":
+			res.domain = v.Index
+			res.hierarchy = append(res.hierarchy,
+				taxonHierarchy{sortBy: 5, rank: "domain", index: v.Index})
 		case "kingdom":
 			res.kingdom = v.Index
 			res.hierarchy = append(res.hierarchy,
