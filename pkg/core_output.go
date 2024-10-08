@@ -191,6 +191,11 @@ func (a *arch) saveCoreOutput(ctx context.Context, chOut <-chan []string) error 
 }
 
 func (a *arch) flatHierarchy() bool {
+	// if tree hierarchy exists, favor it over flat one.
+	if a.taxon.higherTaxonID != -1 ||
+		a.taxon.parentNameUsageID != -1 {
+		return false
+	}
 	return len(a.taxon.hierarchy) > 1
 }
 

@@ -82,6 +82,42 @@ func TestCoreData(t *testing.T) {
 	}
 }
 
+// TestPreferTreeHierarchy checks if tree hierarchy is created if there is
+// flat hierarchy also possible.
+func TestPreferTreeHierarchy(t *testing.T) {
+	assert := assert.New(t)
+	path := filepath.Join("testdata", "vascan.zip")
+	cfg := config.New()
+	arc, err := dwca.Factory(path, cfg)
+	assert.Nil(err)
+	assert.Implements((*dwca.Archive)(nil), arc)
+
+	err = arc.Load(cfg.ExtractPath)
+	assert.Nil(err)
+
+	err = arc.Normalize()
+	assert.Nil(err)
+
+	path = filepath.Join(cfg.OutputPath, "taxon.txt")
+	bs, err := os.ReadFile(path)
+	assert.Nil(err)
+
+	rows := strings.Split(string(bs), "\n")
+	assert.Less(1000, len(rows))
+	// IDs look like `73|26|25|128|1142` and can only come from tree
+	// hierachy.
+	for _, v := range rows {
+		if strings.Contains(v, "family|genus") {
+			assert.Regexp(`\d+\|\d+\|\d+\|\d+`, v)
+			break
+		}
+	}
+	fmt.Println(path)
+
+	err = arc.Close()
+	assert.Nil(err)
+}
+
 // TestDomain checks if Domain is included in flat hierarchy.
 func TestDomain(t *testing.T) {
 	assert := assert.New(t)
@@ -104,8 +140,6 @@ func TestDomain(t *testing.T) {
 	rows := strings.Split(string(bs), "\n")
 	assert.Equal(8, len(rows))
 	assert.Contains(rows[2], "domain")
-
-	fmt.Println(path)
 
 	err = arc.Close()
 	assert.Nil(err)
