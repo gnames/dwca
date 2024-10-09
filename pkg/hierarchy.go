@@ -195,7 +195,7 @@ func (a *arch) breadcrumbsNodes(id string) []*hNode {
 	currID = id
 	for currID != "" {
 		if node, ok = a.hierarchy[currID]; !ok {
-			slog.Warn("Hierarchy node not found, making short breadcumbs", "id", currID)
+			slog.Warn("Hierarchy node not found, making short breadcrumbs", "id", currID)
 			return res
 		}
 
