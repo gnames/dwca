@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.5] - 2025-01-23 Thu
+
+Add: update modules.
+
 ## [v0.3.4] - 2024-10-08 Tue
 
 Add: make tree hierarchy be preferred over flat hierarchy.
