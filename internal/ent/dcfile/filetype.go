@@ -30,6 +30,9 @@ func (ft FileType) String() string {
 }
 
 func NewFileType(file string) FileType {
+	if file == "" {
+		return ZIP
+	}
 	switch {
 	case strings.HasSuffix(file, ".zip"):
 		return ZIP
@@ -42,7 +45,7 @@ func NewFileType(file string) FileType {
 	case strings.HasSuffix(file, ".tar.bz2"):
 		return TARBZ2
 	default:
-		slog.Warn("Unknown file type, trying ZIP", "file", file)
+		slog.Info("Unknown file type, trying ZIP", "file", file)
 		return ZIP
 	}
 }

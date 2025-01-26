@@ -54,10 +54,6 @@ type arch struct {
 	// taxon contains information about DarwinCore fields that are relevant
 	// for taxon information.
 	taxon *taxon
-
-	// hierarchy is used when core contains parent-child relationship to
-	// represent a hierarchy.
-	hierarchy map[string]*hNode
 }
 
 // New creates a new Archive object. It takes configuration file and necessary
@@ -71,7 +67,6 @@ func New(cfg config.Config, df dcfile.DCFile) Archive {
 		gnpPool <- gnparser.New(cfgGNP)
 	}
 	res.gnpPool = gnpPool
-	res.hierarchy = make(map[string]*hNode)
 	return res
 }
 

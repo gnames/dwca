@@ -36,16 +36,6 @@ func (a *arch) processCoreOutput() error {
 	// add new fields to Core metadata
 	a.updateOutputCore(maxIdx)
 
-	// try to build hierarchy out of parent-child relationship
-	if !a.flatHierarchy() {
-		slog.Info("Building hierarchy for Core", "file", a.metaSimple.Location)
-		err := a.buildHierarchy()
-		if err != nil {
-			return err
-		}
-		slog.Info("Hierarchy built", "file", a.metaSimple.Location)
-	}
-
 	// context for the whole process
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -231,24 +221,8 @@ func (a *arch) processCoreRow(
 		return nil, fmt.Errorf("cannot process Core row")
 	}
 
-	if a.flatHierarchy() {
-		hNames := make([]string, len(a.taxon.hierarchy))
-		ranks := make([]string, len(a.taxon.hierarchy))
-
-		for i, v := range a.taxon.hierarchy {
-			hNames[i] = row[v.index]
-			ranks[i] = v.rank
-		}
-		breadcrumbs := strings.Join(hNames, "|")
-		bcRanks := strings.Join(ranks, "|")
-		res = append(res, breadcrumbs, bcRanks, "")
-	} else if len(a.hierarchy) > 0 {
-		taxonID := row[a.metaSimple.Index]
-		ts, rs, ids := a.getBreadcrumbs(taxonID)
-		res = append(res, ts, rs, ids)
-	} else {
-		res = append(res, "", "", "")
-	}
+	// TODO remove this placeholder for hierarchy
+	res = append(res, "", "", "")
 
 	switch a.dgn.SynonymType {
 	case diagn.SynAcceptedID:
