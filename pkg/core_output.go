@@ -131,9 +131,6 @@ func (a *arch) updateOutputCore(maxIdx int) {
 		"canonicalFormFull",
 		"canonicalForm",
 		"canonicalFormStem",
-		"breadcrumbNames",
-		"breadcrumbRanks",
-		"breadcrumbIds",
 	}
 
 	var idx int
@@ -222,7 +219,7 @@ func (a *arch) processCoreRow(
 	}
 
 	// TODO remove this placeholder for hierarchy
-	res = append(res, "", "", "")
+	// res = append(res, "", "", "")
 
 	switch a.dgn.SynonymType {
 	case diagn.SynAcceptedID:
