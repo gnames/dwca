@@ -196,13 +196,13 @@ func (a *arch) processCoreRow(
 	case diagn.SciNameCanonical:
 		name, author := a.taxon.genNameAu(row)
 		nameFull := strings.TrimSpace(name + " " + author)
-		nameFull = parsedData(p, nameFull, "")
+		nameFull = getFullName(p, nameFull, "")
 		row = append(row, nameFull)
 		res = row
 
 	case diagn.SciNameFull, diagn.SciNameUnknown:
 		name, auth := a.taxon.genNameAu(row)
-		nameFull := parsedData(p, name, auth)
+		nameFull := getFullName(p, name, auth)
 		row = append(row, nameFull)
 		res = row
 
@@ -287,7 +287,10 @@ func (a *arch) normalizeRow(row []string, maxIdx int) []string {
 	return row[0 : maxIdx+1]
 }
 
-func parsedData(p gnparser.GNparser, name, auth string) string {
+// getFullName checks if a scientificName field contains name with authorship.
+// if yes, it does not try to append it with authorship from
+// scientificNameAuthorship field.
+func getFullName(p gnparser.GNparser, name, auth string) string {
 	name = strings.TrimSpace(name)
 	auth = strings.TrimSpace(auth)
 
