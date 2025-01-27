@@ -5,6 +5,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.7] - 2025-01-30 Thu
+
+Add: scientificNameString is the only added column
+
+## [v0.3.6] - 2025-01-27 Mon
+
+Add: removed all additional fields except `scientificNameString`.
+
 ## [v0.3.5] - 2025-01-23 Thu
 
 Add: update modules.

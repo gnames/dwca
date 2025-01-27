@@ -42,7 +42,7 @@ func hierType(d []map[string]string) HierType {
 			isTree = true
 		}
 	}
-	if count > 2 {
+	if count > 5 {
 		return HierFlat
 	}
 

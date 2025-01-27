@@ -19,8 +19,8 @@ func TestNormalizeDwCA(t *testing.T) {
 		path  []string
 		hType diagn.HierType
 	}{
-		// {"tree", []string{"data.tar.gz"}, diagn.HierTree},
-		// {"flat", []string{"diagn", "hierarchy", "flat.tar.gz"}, diagn.HierFlat},
+		{"tree", []string{"data.tar.gz"}, diagn.HierTree},
+		{"flat", []string{"diagn", "hierarchy", "flat.tar.gz"}, diagn.HierFlat},
 		{"myriatrix", []string{"myriatrix.tar.gz"}, diagn.HierTree},
 	}
 
@@ -80,8 +80,8 @@ func TestIndexNoField(t *testing.T) {
 		msg, file string
 		fieldNum  int
 	}{
-		{"idx norm", "tree.tar.gz", 9},
-		{"idx empty", "tree_no_index_info.tar.gz", 9},
+		{"idx norm", "tree.tar.gz", 8},
+		{"idx empty", "tree_no_index_info.tar.gz", 8},
 		{"idx empty", "gbif-small.tar.gz", 24},
 	}
 	for _, v := range tests {

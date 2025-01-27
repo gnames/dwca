@@ -140,15 +140,6 @@ func (a *arch) updateOutputCore(maxIdx int) {
 			meta.Field{Term: term, Idx: idx, Index: strconv.Itoa(idx)},
 		)
 	}
-	if _, ok := a.metaSimple.FieldsData["acceptednameusageid"]; !ok {
-		idx++
-		a.outputMeta.Core.Fields = append(
-			a.outputMeta.Core.Fields,
-			meta.Field{Term: "http://rs.tdwg.org/dwc/terms/acceptedNameUsageID",
-				Idx:   idx,
-				Index: strconv.Itoa(idx)},
-		)
-	}
 	ext := filepath.Ext(a.metaSimple.Location)
 	location := a.metaSimple.Location[:len(a.metaSimple.Location)-len(ext)] + ".txt"
 
@@ -195,15 +186,15 @@ func (a *arch) processCoreRow(
 
 	case diagn.SciNameCanonical:
 		name, author := a.taxon.genNameAu(row)
-		nameFull := strings.TrimSpace(name + " " + author)
-		nameFull = parsedData(p, nameFull, "")
-		row = append(row, nameFull)
+		nameStr := strings.TrimSpace(name + " " + author)
+		nameStr = getFullName(p, nameStr, "")
+		row = append(row, nameStr)
 		res = row
 
 	case diagn.SciNameFull, diagn.SciNameUnknown:
 		name, auth := a.taxon.genNameAu(row)
-		nameFull := parsedData(p, name, auth)
-		row = append(row, nameFull)
+		nameStr := getFullName(p, name, auth)
+		row = append(row, nameStr)
 		res = row
 
 	case diagn.SciNameComposite:
@@ -213,27 +204,6 @@ func (a *arch) processCoreRow(
 	default:
 		slog.Error("dwca.ProcessCoreRow: cannot process Core row")
 		return nil, fmt.Errorf("cannot process Core row")
-	}
-
-	switch a.dgn.SynonymType {
-	case diagn.SynAcceptedID:
-		var taxonID, accID string
-		aIdx := a.taxon.acceptedNameUsageID
-		txIdx := a.taxon.taxonID
-		if aIdx != -1 && txIdx != -1 {
-			accID = row[aIdx]
-			taxonID = row[txIdx]
-			if accID == taxonID {
-				res[aIdx] = ""
-			}
-		}
-	case diagn.SynHierarchy, diagn.SynUnknown:
-		if a.isSynonym(row) {
-			parentID := a.parentID(row)
-			res = append(res, parentID)
-		} else {
-			res = append(res, "")
-		}
 	}
 
 	return res, nil
@@ -287,7 +257,10 @@ func (a *arch) normalizeRow(row []string, maxIdx int) []string {
 	return row[0 : maxIdx+1]
 }
 
-func parsedData(p gnparser.GNparser, name, auth string) string {
+// getFullName checks if a scientificName field contains name with authorship.
+// if yes, it does not try to append it with authorship from
+// scientificNameAuthorship field.
+func getFullName(p gnparser.GNparser, name, auth string) string {
 	name = strings.TrimSpace(name)
 	auth = strings.TrimSpace(auth)
 
