@@ -80,9 +80,9 @@ func TestIndexNoField(t *testing.T) {
 		msg, file string
 		fieldNum  int
 	}{
-		{"idx norm", "tree.tar.gz", 15},
-		{"idx empty", "tree_no_index_info.tar.gz", 15},
-		{"idx empty", "gbif-small.tar.gz", 30},
+		{"idx norm", "tree.tar.gz", 9},
+		{"idx empty", "tree_no_index_info.tar.gz", 9},
+		{"idx empty", "gbif-small.tar.gz", 24},
 	}
 	for _, v := range tests {
 		path := filepath.Join("testdata", "diagn", "hierarchy", v.file)

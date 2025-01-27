@@ -128,9 +128,6 @@ func (a *arch) updateOutputCore(maxIdx int) {
 
 	terms := []string{
 		"scientificNameString",
-		"canonicalFormFull",
-		"canonicalForm",
-		"canonicalFormStem",
 	}
 
 	var idx int
@@ -199,14 +196,14 @@ func (a *arch) processCoreRow(
 	case diagn.SciNameCanonical:
 		name, author := a.taxon.genNameAu(row)
 		nameFull := strings.TrimSpace(name + " " + author)
-		nameFull, canFull, can, stem := parsedData(p, nameFull, "")
-		row = append(row, nameFull, canFull, can, stem)
+		nameFull = parsedData(p, nameFull, "")
+		row = append(row, nameFull)
 		res = row
 
 	case diagn.SciNameFull, diagn.SciNameUnknown:
 		name, auth := a.taxon.genNameAu(row)
-		nameFull, canFull, can, stem := parsedData(p, name, auth)
-		row = append(row, nameFull, canFull, can, stem)
+		nameFull := parsedData(p, name, auth)
+		row = append(row, nameFull)
 		res = row
 
 	case diagn.SciNameComposite:
@@ -217,9 +214,6 @@ func (a *arch) processCoreRow(
 		slog.Error("dwca.ProcessCoreRow: cannot process Core row")
 		return nil, fmt.Errorf("cannot process Core row")
 	}
-
-	// TODO remove this placeholder for hierarchy
-	// res = append(res, "", "", "")
 
 	switch a.dgn.SynonymType {
 	case diagn.SynAcceptedID:
@@ -293,22 +287,16 @@ func (a *arch) normalizeRow(row []string, maxIdx int) []string {
 	return row[0 : maxIdx+1]
 }
 
-func parsedData(p gnparser.GNparser, name, auth string) (nameFull, canFull, can, stem string) {
+func parsedData(p gnparser.GNparser, name, auth string) string {
 	name = strings.TrimSpace(name)
 	auth = strings.TrimSpace(auth)
 
 	parsed := p.ParseName(name)
 	if !parsed.Parsed {
-		return name, "", "", ""
+		return name
 	}
 	if auth != "" && parsed.Authorship == nil {
-		return name + " " + auth,
-			parsed.Canonical.Full,
-			parsed.Canonical.Simple,
-			parsed.Canonical.Stemmed
+		return name + " " + auth
 	}
-	return name,
-		parsed.Canonical.Full,
-		parsed.Canonical.Simple,
-		parsed.Canonical.Stemmed
+	return name
 }

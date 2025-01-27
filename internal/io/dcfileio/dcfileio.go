@@ -265,8 +265,7 @@ func (d *dcfileio) ExtensionStream(
 	}
 
 	slog.Info(
-		"Processed %s",
-		"lines", humanize.Comma(int64(count)), "ext", extType,
+		"Processed extension", "lines", humanize.Comma(int64(count)), "ext", extType,
 	)
 	return int(count), nil
 }
